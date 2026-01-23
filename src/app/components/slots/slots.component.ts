@@ -1,6 +1,8 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { CreditsService } from '../../services/credits.service';
+import { Auth } from '@angular/fire/auth';
 
 interface Reel {
   symbols: string[];
@@ -24,79 +26,89 @@ interface WinResult {
     <div class="slots-page">
       <header class="slots-header">
         <button (click)="goBack()" class="btn-back">← Lobby</button>
-        <h1>MINNESOTA VIKINGS SLOTS</h1>
+        <h1>VIKINGS SLOTS</h1>
         <button (click)="togglePaytable()" class="btn-paytable">Paytable</button>
       </header>
+
+      <!-- Daily Credits Banner -->
+      <div class="daily-banner" *ngIf="showDailyBanner">
+        <div class="banner-content">
+          <h3>🎁 Daily Bonus Claimed!</h3>
+          <p>+1000 Credits Added</p>
+          <p class="next-bonus">Next bonus in: {{ timeUntilNextCredit }}</p>
+        </div>
+      </div>
 
       <div class="paytable-modal" *ngIf="showPaytable" (click)="showPaytable = false">
         <div class="paytable-content" (click)="$event.stopPropagation()">
           <h2>💰 PAYTABLE 💰</h2>
           
           <div class="paytable-section">
-            <h3>Symbol Payouts (coins per line bet)</h3>
+            <h3>Symbol Payouts</h3>
+            <p class="bet-note">Payouts shown for <strong>{{ currentBet }} credit</strong> bet per line</p>
             <div class="payout-grid">
               <div class="payout-row jackpot">
                 <span class="symbol">🏆</span>
                 <div class="payout-values">
-                  <span>5 = <strong>1000</strong></span>
-                  <span>4 = <strong>250</strong></span>
-                  <span>3 = <strong>50</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('🏆', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('🏆', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('🏆', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row high">
                 <span class="symbol">🏈</span>
                 <div class="payout-values">
-                  <span>5 = <strong>500</strong></span>
-                  <span>4 = <strong>100</strong></span>
-                  <span>3 = <strong>25</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('🏈', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('🏈', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('🏈', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row high">
                 <span class="symbol">⚔️</span>
                 <div class="payout-values">
-                  <span>5 = <strong>300</strong></span>
-                  <span>4 = <strong>75</strong></span>
-                  <span>3 = <strong>20</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('⚔️', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('⚔️', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('⚔️', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row medium">
                 <span class="symbol">🛡️</span>
                 <div class="payout-values">
-                  <span>5 = <strong>200</strong></span>
-                  <span>4 = <strong>50</strong></span>
-                  <span>3 = <strong>15</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('🛡️', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('🛡️', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('🛡️', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row medium">
                 <span class="symbol">👑</span>
                 <div class="payout-values">
-                  <span>5 = <strong>150</strong></span>
-                  <span>4 = <strong>40</strong></span>
-                  <span>3 = <strong>10</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('👑', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('👑', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('👑', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row low">
                 <span class="symbol">⚡</span>
                 <div class="payout-values">
-                  <span>5 = <strong>100</strong></span>
-                  <span>4 = <strong>30</strong></span>
-                  <span>3 = <strong>8</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('⚡', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('⚡', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('⚡', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row low">
                 <span class="symbol">💜</span>
                 <div class="payout-values">
-                  <span>5 = <strong>80</strong></span>
-                  <span>4 = <strong>25</strong></span>
-                  <span>3 = <strong>5</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('💜', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('💜', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('💜', 3) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row low">
                 <span class="symbol">V</span>
                 <div class="payout-values">
-                  <span>5 = <strong>60</strong></span>
-                  <span>4 = <strong>20</strong></span>
-                  <span>3 = <strong>5</strong></span>
+                  <span>5 = <strong>{{ calculatePayout('V', 5) }}</strong></span>
+                  <span>4 = <strong>{{ calculatePayout('V', 4) }}</strong></span>
+                  <span>3 = <strong>{{ calculatePayout('V', 3) }}</strong></span>
                 </div>
               </div>
             </div>
@@ -105,34 +117,16 @@ interface WinResult {
           <div class="paytable-section">
             <h3>📊 25 Paylines</h3>
             <p class="lines-desc">Wins pay from left to right on active paylines</p>
-            <div class="lines-grid">
-              <div class="line-group">
-                <strong>Straight Lines (1-5):</strong>
-                <p>Top, Upper-Mid, Center, Lower-Mid, Bottom</p>
-              </div>
-              <div class="line-group">
-                <strong>V & Inverted V (6-9):</strong>
-                <p>Various V-shaped patterns</p>
-              </div>
-              <div class="line-group">
-                <strong>Zigzag Lines (10-17):</strong>
-                <p>W, M, and zigzag patterns</p>
-              </div>
-              <div class="line-group">
-                <strong>Complex (18-25):</strong>
-                <p>Advanced multi-level patterns</p>
-              </div>
-            </div>
+            <p class="lines-desc">All 25 lines active every spin</p>
           </div>
 
           <div class="paytable-section">
-            <h3>ℹ️ Game Rules</h3>
+            <h3>💎 Daily Credits</h3>
             <ul class="rules-list">
-              <li>All paylines are active on every spin</li>
-              <li>Wins are calculated from left to right</li>
-              <li>Only highest win per line is paid</li>
-              <li>Multiple line wins are accumulated</li>
-              <li>Malfunction voids all pays and plays</li>
+              <li>Receive 1,000 free credits every day</li>
+              <li>Credits automatically added on first login each day</li>
+              <li>Maximum balance: 50,000 credits</li>
+              <li>Next daily bonus: {{ timeUntilNextCredit }}</li>
             </ul>
           </div>
 
@@ -149,7 +143,7 @@ interface WinResult {
               <div class="win-details" *ngIf="currentWins.length > 0">
                 <div class="win-summary">{{ currentWins.length }} Winning Line{{ currentWins.length > 1 ? 's' : '' }}</div>
                 <div *ngFor="let win of currentWins" class="win-line">
-                  Line {{ win.lineIndex + 1 }}: {{ win.count }} × {{ win.symbol }} = {{ win.payout }} coins
+                  Line {{ win.lineIndex + 1 }}: {{ win.count }} × {{ win.symbol }} = {{ win.payout }} credits
                 </div>
               </div>
             </div>
@@ -161,32 +155,23 @@ interface WinResult {
 
           <div id="reelsContainer">
             <svg class="paylines-svg" viewBox="0 0 540 315" preserveAspectRatio="none">
-              <!-- Core 5 lines -->
               <line x1="0" y1="52.5" x2="540" y2="52.5" [attr.opacity]="winningLines.has(0) ? '1' : '0.15'" stroke="#FFD700" stroke-width="2"/>
               <line x1="0" y1="105" x2="540" y2="105" [attr.opacity]="winningLines.has(1) ? '1' : '0.15'" stroke="#FF6B6B" stroke-width="2"/>
               <line x1="0" y1="157.5" x2="540" y2="157.5" [attr.opacity]="winningLines.has(2) ? '1' : '0.15'" stroke="#4ECDC4" stroke-width="2"/>
               <line x1="0" y1="210" x2="540" y2="210" [attr.opacity]="winningLines.has(3) ? '1' : '0.15'" stroke="#95E1D3" stroke-width="2"/>
               <line x1="0" y1="262.5" x2="540" y2="262.5" [attr.opacity]="winningLines.has(4) ? '1' : '0.15'" stroke="#F38181" stroke-width="2"/>
-              
-              <!-- V patterns -->
               <polyline points="0,52.5 135,157.5 270,262.5 405,157.5 540,52.5" [attr.opacity]="winningLines.has(5) ? '1' : '0.15'" stroke="#AA96DA" stroke-width="2" fill="none"/>
               <polyline points="0,262.5 135,157.5 270,52.5 405,157.5 540,262.5" [attr.opacity]="winningLines.has(6) ? '1' : '0.15'" stroke="#FCBAD3" stroke-width="2" fill="none"/>
               <polyline points="0,105 135,157.5 270,210 405,157.5 540,105" [attr.opacity]="winningLines.has(7) ? '1' : '0.15'" stroke="#FFFFD2" stroke-width="2" fill="none"/>
               <polyline points="0,210 135,157.5 270,105 405,157.5 540,210" [attr.opacity]="winningLines.has(8) ? '1' : '0.15'" stroke="#A8D8EA" stroke-width="2" fill="none"/>
-              
-              <!-- W and M patterns -->
               <polyline points="0,52.5 108,157.5 216,52.5 324,157.5 432,52.5 540,157.5" [attr.opacity]="winningLines.has(9) ? '1' : '0.15'" stroke="#FF6B9D" stroke-width="2" fill="none"/>
               <polyline points="0,262.5 108,157.5 216,262.5 324,157.5 432,262.5 540,157.5" [attr.opacity]="winningLines.has(10) ? '1' : '0.15'" stroke="#C44569" stroke-width="2" fill="none"/>
               <polyline points="0,157.5 108,52.5 216,157.5 324,262.5 432,157.5 540,52.5" [attr.opacity]="winningLines.has(11) ? '1' : '0.15'" stroke="#F8B500" stroke-width="2" fill="none"/>
               <polyline points="0,157.5 108,262.5 216,157.5 324,52.5 432,157.5 540,262.5" [attr.opacity]="winningLines.has(12) ? '1' : '0.15'" stroke="#6BCB77" stroke-width="2" fill="none"/>
-              
-              <!-- Zigzag patterns -->
               <polyline points="0,52.5 135,105 270,157.5 405,210 540,262.5" [attr.opacity]="winningLines.has(13) ? '1' : '0.15'" stroke="#4D96FF" stroke-width="2" fill="none"/>
               <polyline points="0,262.5 135,210 270,157.5 405,105 540,52.5" [attr.opacity]="winningLines.has(14) ? '1' : '0.15'" stroke="#FFB6B9" stroke-width="2" fill="none"/>
               <polyline points="0,105 135,52.5 270,105 405,157.5 540,210" [attr.opacity]="winningLines.has(15) ? '1' : '0.15'" stroke="#BAE8E8" stroke-width="2" fill="none"/>
               <polyline points="0,210 135,262.5 270,210 405,157.5 540,105" [attr.opacity]="winningLines.has(16) ? '1' : '0.15'" stroke="#FFEAA7" stroke-width="2" fill="none"/>
-              
-              <!-- Complex patterns -->
               <polyline points="0,157.5 135,105 270,52.5 405,105 540,157.5" [attr.opacity]="winningLines.has(17) ? '1' : '0.15'" stroke="#DDA15E" stroke-width="2" fill="none"/>
               <polyline points="0,157.5 135,210 270,262.5 405,210 540,157.5" [attr.opacity]="winningLines.has(18) ? '1' : '0.15'" stroke="#BC6C25" stroke-width="2" fill="none"/>
               <polyline points="0,52.5 135,210 270,52.5 405,210 540,52.5" [attr.opacity]="winningLines.has(19) ? '1' : '0.15'" stroke="#E07A5F" stroke-width="2" fill="none"/>
@@ -235,8 +220,8 @@ interface WinResult {
                 <button (click)="increaseBet()" [disabled]="isSpinning">+</button>
               </div>
 
-              <button id="spinButton" (click)="spin()" [disabled]="isSpinning || balance < (currentBet * 25)">
-                {{ isSpinning ? 'SPINNING...' : 'SPIN' }}
+              <button id="spinButton" (click)="spin()" [disabled]="isSpinning || balance < (currentBet * 25) || isSaving">
+                {{ isSpinning ? 'SPINNING...' : isSaving ? 'SAVING...' : 'SPIN' }}
               </button>
 
               <div class="control-group">
@@ -249,6 +234,65 @@ interface WinResult {
     </div>
   `,
   styles: [`
+    /* Previous styles remain the same, adding new ones: */
+    
+    .daily-banner {
+      max-width: 700px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      border: 3px solid #FFC62F;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      animation: slideDown 0.5s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .banner-content h3 {
+      color: #fff;
+      font-size: 24px;
+      margin: 0 0 10px 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .banner-content p {
+      color: #fff;
+      font-size: 18px;
+      margin: 5px 0;
+      font-weight: bold;
+    }
+
+    .next-bonus {
+      font-size: 14px !important;
+      opacity: 0.9;
+      font-weight: normal !important;
+    }
+
+    .bet-note {
+      background: rgba(255, 198, 47, 0.1);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #FFC62F;
+      margin: 10px 0 15px;
+      font-size: 14px;
+      color: #FFC62F;
+    }
+
+    .bet-note strong {
+      color: #fff;
+    }
+
+    /* Keep all existing styles from previous version */
     .slots-page {
       min-height: 100vh;
       background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
@@ -391,31 +435,7 @@ interface WinResult {
     .lines-desc {
       color: #bbb;
       font-size: 14px;
-      margin-bottom: 15px;
-    }
-
-    .lines-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .line-group {
-      padding: 12px;
-      background: rgba(79, 38, 131, 0.2);
-      border-radius: 6px;
-    }
-
-    .line-group strong {
-      color: #FFC62F;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .line-group p {
-      font-size: 13px;
-      color: #ccc;
-      margin: 0;
+      margin-bottom: 10px;
     }
 
     .rules-list {
@@ -692,6 +712,8 @@ interface WinResult {
       border-radius: 12px;
       margin-top: 20px;
       border: 2px solid #FFC62F;
+      max-height: 200px;
+      overflow-y: auto;
     }
 
     .win-summary {
@@ -711,35 +733,11 @@ interface WinResult {
       border-radius: 6px;
       border-left: 3px solid #4CAF50;
     }
-
-    @media (max-width: 768px) {
-      .reel {
-        width: 18%;
-      }
-
-      :host ::ng-deep .symbol {
-        font-size: 48px;
-      }
-
-      .win-title {
-        font-size: 36px;
-      }
-
-      .win-amount {
-        font-size: 48px;
-      }
-
-      .lines-grid {
-        grid-template-columns: 1fr;
-      }
-    }
   `]
 })
-export class SlotsComponent implements OnInit, AfterViewInit {
-  // Symbol weights for realistic RTP (Return to Player ~94-96%)
+export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly SYMBOLS = ['🏆', '🏈', '⚔️', '🛡️', '👑', '⚡', '💜', 'V'];
   
-  // Weighted reel strips for balanced gameplay
   private readonly REEL_STRIPS = [
     ['⚡', '💜', 'V', '👑', '🛡️', '⚔️', '💜', 'V', '⚡', '👑', '🛡️', 'V', '💜', '⚔️', '🏈', 'V', '⚡', '👑', '💜', '🛡️', 'V', '⚔️', '⚡', '👑', '🏆', 'V', '💜', '🛡️', '⚔️', 'V'],
     ['V', '💜', '⚡', '🛡️', '👑', 'V', '⚔️', '💜', '⚡', '🛡️', 'V', '👑', '🏈', '💜', '⚡', 'V', '🛡️', '👑', '⚔️', 'V', '💜', '⚡', '🏆', '🛡️', 'V', '👑', '💜', '⚔️', 'V', '⚡'],
@@ -752,7 +750,6 @@ export class SlotsComponent implements OnInit, AfterViewInit {
   private readonly VISIBLE_SYMBOLS = 3;
   private readonly BET_LEVELS = [1, 2, 5, 10, 20, 50, 100];
   
-  // Proper paytable (coins won per line bet)
   private readonly PAYTABLE: {[key: string]: {[key: number]: number}} = {
     '🏆': { 5: 1000, 4: 250, 3: 50 },
     '🏈': { 5: 500, 4: 100, 3: 25 },
@@ -764,61 +761,94 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     'V': { 5: 60, 4: 20, 3: 5 }
   };
 
-  // 25 paylines (industry standard)
   private readonly PAYLINES = [
-    [0, 0, 0, 0, 0], // 1: Top
-    [0, 1, 1, 1, 0], // 2: Upper mid
-    [1, 1, 1, 1, 1], // 3: Center
-    [2, 1, 1, 1, 2], // 4: Lower mid
-    [2, 2, 2, 2, 2], // 5: Bottom
-    [0, 1, 2, 1, 0], // 6: V
-    [2, 1, 0, 1, 2], // 7: Inverted V
-    [0, 1, 0, 1, 0], // 8: Small V
-    [2, 1, 2, 1, 2], // 9: Small inverted V
-    [0, 0, 1, 2, 2], // 10: Diagonal down
-    [2, 2, 1, 0, 0], // 11: Diagonal up
-    [1, 0, 1, 2, 1], // 12: W
-    [1, 2, 1, 0, 1], // 13: M
-    [0, 1, 0, 2, 0], // 14: Zigzag
-    [2, 1, 2, 0, 2], // 15: Zigzag inverted
-    [0, 0, 0, 1, 2], // 16: Curve down
-    [2, 2, 2, 1, 0], // 17: Curve up
-    [1, 0, 0, 0, 1], // 18: Smile
-    [1, 2, 2, 2, 1], // 19: Frown
-    [0, 2, 0, 2, 0], // 20: Big zigzag
-    [2, 0, 2, 0, 2], // 21: Big zigzag inv
-    [0, 1, 2, 0, 1], // 22: Complex 1
-    [2, 1, 0, 2, 1], // 23: Complex 2
-    [1, 0, 1, 0, 1], // 24: Complex 3
-    [1, 2, 1, 2, 1]  // 25: Complex 4
+    [0, 0, 0, 0, 0], [0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [2, 1, 1, 1, 2], [2, 2, 2, 2, 2],
+    [0, 1, 2, 1, 0], [2, 1, 0, 1, 2], [0, 1, 0, 1, 0], [2, 1, 2, 1, 2], [0, 0, 1, 2, 2],
+    [2, 2, 1, 0, 0], [1, 0, 1, 2, 1], [1, 2, 1, 0, 1], [0, 1, 0, 2, 0], [2, 1, 2, 0, 2],
+    [0, 0, 0, 1, 2], [2, 2, 2, 1, 0], [1, 0, 0, 0, 1], [1, 2, 2, 2, 1], [0, 2, 0, 2, 0],
+    [2, 0, 2, 0, 2], [0, 1, 2, 0, 1], [2, 1, 0, 2, 1], [1, 0, 1, 0, 1], [1, 2, 1, 2, 1]
   ];
 
-  balance = 1000;
+  balance = 0;
   currentBet = 1;
   lastWin = 0;
   isSpinning = false;
+  isSaving = false;
   betIndex = 0;
   
   showWinOverlay = false;
   showPaytable = false;
+  showDailyBanner = false;
   winTitle = '';
   winAmount = '';
+  timeUntilNextCredit = '';
   winningReels = new Set<number>();
   winningLines = new Set<number>();
   currentWins: WinResult[] = [];
 
   private reels: Reel[] = [];
+  private userId: string = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private creditsService: CreditsService,
+    private auth: Auth
+  ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.loadUserCredits();
+  }
 
   ngAfterViewInit() {
     setTimeout(() => this.initReels(), 0);
   }
 
+  ngOnDestroy() {
+    // Save balance on component destroy
+    if (this.userId) {
+      this.saveBalance();
+    }
+  }
+
+  async loadUserCredits() {
+    try {
+      const user = this.auth.currentUser;
+      if (!user) {
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      this.userId = user.uid;
+      const credits = await this.creditsService.getUserCredits();
+      
+      const today = new Date().toISOString().split('T')[0];
+      if (credits.lastDailyCredit === today && this.balance === 0) {
+        // Show daily banner if credits were just awarded
+        this.showDailyBanner = true;
+        setTimeout(() => this.showDailyBanner = false, 5000);
+      }
+
+      this.balance = credits.balance;
+      this.updateTimeUntilNextCredit();
+    } catch (error) {
+      console.error('Error loading credits:', error);
+      alert('Failed to load credits');
+    }
+  }
+
+  async updateTimeUntilNextCredit() {
+    this.timeUntilNextCredit = await this.creditsService.getTimeUntilNextDailyCredit();
+  }
+
+  calculatePayout(symbol: string, count: number): number {
+    return (this.PAYTABLE[symbol]?.[count] || 0) * this.currentBet;
+  }
+
   togglePaytable() {
     this.showPaytable = !this.showPaytable;
+    if (this.showPaytable) {
+      this.updateTimeUntilNextCredit();
+    }
   }
 
   private initReels() {
@@ -830,7 +860,6 @@ export class SlotsComponent implements OnInit, AfterViewInit {
       };
 
       if (reel.element) {
-        // Create circular reel (duplicate strip for seamless spinning)
         const fullStrip = [...this.REEL_STRIPS[i], ...this.REEL_STRIPS[i]];
         fullStrip.forEach(symbol => {
           const symbolEl = document.createElement('div');
@@ -844,9 +873,9 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     }
   }
 
-  spin() {
+  async spin() {
     const totalBet = this.currentBet * 25;
-    if (this.isSpinning || this.balance < totalBet) return;
+    if (this.isSpinning || this.balance < totalBet || this.isSaving) return;
 
     this.isSpinning = true;
     this.balance -= totalBet;
@@ -854,6 +883,13 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     this.winningReels.clear();
     this.winningLines.clear();
     this.currentWins = [];
+
+    // Save wager to Firebase
+    try {
+      await this.creditsService.recordWager(this.userId, totalBet);
+    } catch (error) {
+      console.error('Error recording wager:', error);
+    }
 
     const spinPromises = this.reels.map((reel, index) => {
       return new Promise<void>(resolve => {
@@ -869,7 +905,6 @@ export class SlotsComponent implements OnInit, AfterViewInit {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / spinDuration, 1);
           
-          // Smooth easing
           const easeOut = 1 - Math.pow(1 - progress, 3);
           const totalDistance = (stripLength * spins) + (targetPos >= startPos ? targetPos - startPos : stripLength - startPos + targetPos);
           const currentDistance = totalDistance * easeOut;
@@ -915,14 +950,13 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     return grid;
   }
 
-  private checkWin() {
+  private async checkWin() {
     const grid = this.getVisibleSymbols();
     let totalWinCoins = 0;
     const winningReelsSet = new Set<number>();
     const winningLinesSet = new Set<number>();
     const wins: WinResult[] = [];
 
-    // Check each payline
     this.PAYLINES.forEach((payline, lineIndex) => {
       const lineSymbols = payline.map((row, col) => grid[col][row]);
       const lineWin = this.checkLine(lineSymbols);
@@ -943,24 +977,31 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     });
 
     if (totalWinCoins > 0) {
-      const totalWinAmount = totalWinCoins * this.currentBet;
-      this.balance += totalWinAmount;
-      this.lastWin = totalWinAmount;
+      this.balance += totalWinCoins;
+      this.lastWin = totalWinCoins;
       this.winningReels = winningReelsSet;
       this.winningLines = winningLinesSet;
       this.currentWins = wins;
-      this.showWinAnimation(totalWinAmount, totalWinCoins);
+      
+      // Save win to Firebase
+      try {
+        await this.creditsService.recordWin(this.userId, totalWinCoins);
+      } catch (error) {
+        console.error('Error recording win:', error);
+      }
+
+      this.showWinAnimation(totalWinCoins);
+    } else {
+      // Save balance even on losses
+      await this.saveBalance();
     }
   }
 
   private checkLine(symbols: string[]): { payout: number; positions: number[]; symbol: string; count: number } {
     let bestWin = { payout: 0, positions: [] as number[], symbol: '', count: 0 };
 
-    // Check left to right for each symbol
     for (const symbol of this.SYMBOLS) {
       let count = 0;
-      
-      // Count consecutive matching symbols from left
       for (let i = 0; i < symbols.length; i++) {
         if (symbols[i] === symbol) {
           count++;
@@ -969,11 +1010,9 @@ export class SlotsComponent implements OnInit, AfterViewInit {
         }
       }
 
-      // Check if we have a payout for this combination
       if (count >= 3 && this.PAYTABLE[symbol]?.[count]) {
-        const payout = this.PAYTABLE[symbol][count];
+        const payout = this.PAYTABLE[symbol][count] * this.currentBet;
         
-        // Only keep the highest paying symbol on this line
         if (payout > bestWin.payout) {
           bestWin = {
             payout,
@@ -988,7 +1027,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     return bestWin;
   }
 
-  private showWinAnimation(amount: number, coins: number) {
+  private showWinAnimation(amount: number) {
     const totalBet = this.currentBet * 25;
     const multiplier = amount / totalBet;
 
@@ -1004,14 +1043,28 @@ export class SlotsComponent implements OnInit, AfterViewInit {
       this.winTitle = '✨ WINNER! ✨';
     }
 
-    this.winAmount = amount + ' COINS';
+    this.winAmount = amount + ' CREDITS';
     this.showWinOverlay = true;
 
     setTimeout(() => {
       this.showWinOverlay = false;
       this.winningReels.clear();
       this.winningLines.clear();
+      this.saveBalance();
     }, 4500);
+  }
+
+  private async saveBalance() {
+    if (!this.userId || this.isSaving) return;
+    
+    this.isSaving = true;
+    try {
+      await this.creditsService.updateBalance(this.userId, this.balance);
+    } catch (error) {
+      console.error('Error saving balance:', error);
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   increaseBet() {
@@ -1034,6 +1087,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
+    this.saveBalance(); // Save before leaving
     this.router.navigate(['/lobby']);
   }
 }
