@@ -33,6 +33,30 @@ interface Reel {
           </div>
 
           <div id="reelsContainer">
+            <!-- Payline indicators -->
+            <div class="paylines">
+              <svg class="payline-svg">
+                <!-- Line 1: Top row -->
+                <line x1="0" y1="50" x2="100%" y2="50" class="payline" [class.active]="winningLines.has(0)" stroke="#FFC62F" stroke-width="3"/>
+                <!-- Line 2: Middle row -->
+                <line x1="0" y1="150" x2="100%" y2="150" class="payline" [class.active]="winningLines.has(1)" stroke="#FFC62F" stroke-width="3"/>
+                <!-- Line 3: Bottom row -->
+                <line x1="0" y1="250" x2="100%" y2="250" class="payline" [class.active]="winningLines.has(2)" stroke="#FFC62F" stroke-width="3"/>
+                <!-- Line 4: V shape -->
+                <polyline points="0,50 175,150 350,250 525,150 700,50" class="payline" [class.active]="winningLines.has(3)" stroke="#9C27B0" stroke-width="3" fill="none"/>
+                <!-- Line 5: Inverted V -->
+                <polyline points="0,250 175,150 350,50 525,150 700,250" class="payline" [class.active]="winningLines.has(4)" stroke="#00BCD4" stroke-width="3" fill="none"/>
+                <!-- Line 6: Diagonal down -->
+                <line x1="0" y1="50" x2="100%" y2="250" class="payline" [class.active]="winningLines.has(5)" stroke="#4CAF50" stroke-width="3"/>
+                <!-- Line 7: Diagonal up -->
+                <line x1="0" y1="250" x2="100%" y2="50" class="payline" [class.active]="winningLines.has(6)" stroke="#FF5722" stroke-width="3"/>
+                <!-- Line 8: W shape -->
+                <polyline points="0,50 140,250 280,50 420,250 560,50 700,250" class="payline" [class.active]="winningLines.has(7)" stroke="#E91E63" stroke-width="3" fill="none"/>
+                <!-- Line 9: M shape -->
+                <polyline points="0,250 140,50 280,250 420,50 560,250 700,50" class="payline" [class.active]="winningLines.has(8)" stroke="#FFC107" stroke-width="3" fill="none"/>
+              </svg>
+            </div>
+
             <div id="reels">
               <div class="reel" [class.winning]="winningReels.has(0)">
                 <div class="win-frame"></div>
@@ -62,6 +86,10 @@ interface Reel {
               <div class="info-item">
                 <div class="info-label">Balance</div>
                 <div class="info-value">{{ balance }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Lines</div>
+                <div class="info-value">9</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Bet</div>
@@ -97,23 +125,25 @@ interface Reel {
     .slots-page {
       min-height: 100vh;
       background: #0a0a0a;
-      padding: 20px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
     }
 
     .slots-header {
-      max-width: 900px;
-      margin: 0 auto 20px;
+      max-width: 700px;
+      margin: 0 auto 15px;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 15px;
     }
 
     .btn-back {
       background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
       color: #FFC62F;
       border: 2px solid #FFC62F;
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 8px 16px;
+      font-size: 14px;
       font-weight: bold;
       border-radius: 6px;
       cursor: pointer;
@@ -128,60 +158,94 @@ interface Reel {
 
     .slots-header h1 {
       color: #FFC62F;
-      font-size: 24px;
+      font-size: 20px;
       margin: 0;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
     .slots-container {
-      max-width: 900px;
+      max-width: 700px;
       margin: 0 auto;
+      width: 100%;
     }
 
     #slotMachine {
-      width: 900px;
-      max-width: 100%;
+      width: 100%;
       background: linear-gradient(180deg, #1a0033 0%, #0d001a 100%);
       border: 3px solid #4F2683;
       border-radius: 15px;
       box-shadow: 0 0 40px rgba(79, 38, 131, 0.5);
       overflow: hidden;
-      margin: 0 auto;
       position: relative;
     }
 
     #header {
       background: linear-gradient(90deg, #4F2683 0%, #79228B 50%, #4F2683 100%);
-      padding: 20px;
+      padding: 12px;
       text-align: center;
       border-bottom: 3px solid #FFC62F;
     }
 
     #logo {
       color: #FFC62F;
-      font-size: 32px;
+      font-size: 20px;
       font-weight: bold;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
     #reelsContainer {
       background: #000;
-      padding: 40px 20px;
+      padding: 20px 10px;
       position: relative;
+    }
+
+    .paylines {
+      position: absolute;
+      top: 20px;
+      left: 10px;
+      right: 10px;
+      bottom: 20px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .payline-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .payline {
+      opacity: 0.3;
+      transition: all 0.3s;
+      stroke-dasharray: 5, 5;
+    }
+
+    .payline.active {
+      opacity: 1;
+      stroke-width: 4;
+      filter: drop-shadow(0 0 8px currentColor);
+      animation: paylineGlow 0.5s infinite alternate;
+    }
+
+    @keyframes paylineGlow {
+      from { opacity: 1; }
+      to { opacity: 0.6; }
     }
 
     #reels {
       display: flex;
       justify-content: center;
-      gap: 12px;
-      max-width: 750px;
+      gap: 8px;
+      max-width: 680px;
       margin: 0 auto;
+      position: relative;
+      z-index: 10;
     }
 
     .reel {
-      width: 140px;
-      height: 420px;
+      width: 100px;
+      height: 300px;
       background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
       border: 2px solid #333;
       border-radius: 8px;
@@ -197,21 +261,21 @@ interface Reel {
     }
 
     :host ::ng-deep .symbol {
-      height: 140px;
+      height: 100px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 80px;
+      font-size: 60px;
       background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
       border-bottom: 1px solid #333;
     }
 
     .win-frame {
       position: absolute;
-      top: 140px;
+      top: 100px;
       left: 0;
       right: 0;
-      height: 140px;
+      height: 100px;
       border: 3px solid #FFC62F;
       pointer-events: none;
       opacity: 0;
@@ -231,34 +295,36 @@ interface Reel {
 
     #controlPanel {
       background: linear-gradient(180deg, #1a0033 0%, #0d001a 100%);
-      padding: 30px;
+      padding: 15px;
       border-top: 2px solid #4F2683;
     }
 
     #infoDisplay {
       display: flex;
       justify-content: space-around;
-      margin-bottom: 25px;
-      padding: 20px;
+      margin-bottom: 15px;
+      padding: 12px;
       background: rgba(0, 0, 0, 0.4);
       border-radius: 8px;
+      gap: 5px;
     }
 
     .info-item {
       text-align: center;
+      flex: 1;
     }
 
     .info-label {
       color: #999;
-      font-size: 12px;
+      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 5px;
+      margin-bottom: 3px;
     }
 
     .info-value {
       color: #FFC62F;
-      font-size: 28px;
+      font-size: 18px;
       font-weight: bold;
     }
 
@@ -266,26 +332,27 @@ interface Reel {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 30px;
+      gap: 15px;
+      flex-wrap: wrap;
     }
 
     .control-group {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
     }
 
     button {
       background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
       color: #FFC62F;
       border: 2px solid #FFC62F;
-      padding: 12px 24px;
-      font-size: 16px;
+      padding: 8px 16px;
+      font-size: 14px;
       font-weight: bold;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      min-width: 50px;
+      min-width: 40px;
     }
 
     button:hover:not(:disabled) {
@@ -306,8 +373,8 @@ interface Reel {
     #spinButton {
       background: linear-gradient(180deg, #FFC62F 0%, #e6a800 100%);
       color: #000;
-      font-size: 24px;
-      padding: 18px 50px;
+      font-size: 18px;
+      padding: 12px 35px;
       border: 3px solid #fff;
       box-shadow: 0 5px 20px rgba(255, 198, 47, 0.4);
     }
@@ -352,39 +419,46 @@ interface Reel {
     }
 
     .win-title {
-      font-size: 48px;
+      font-size: 36px;
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       text-shadow: 0 0 20px rgba(255, 198, 47, 0.8);
     }
 
     .win-amount {
-      font-size: 72px;
+      font-size: 48px;
       font-weight: bold;
       color: #fff;
       text-shadow: 0 0 30px rgba(255, 198, 47, 1);
     }
 
     @media (max-width: 768px) {
-      #slotMachine {
-        width: 100%;
-      }
-
       .reel {
         width: 18%;
+        height: 270px;
+      }
+
+      :host ::ng-deep .symbol {
+        height: 90px;
+        font-size: 50px;
+      }
+
+      .win-frame {
+        top: 90px;
+        height: 90px;
       }
 
       #controls {
         flex-direction: column;
-        gap: 15px;
+        gap: 10px;
       }
 
       .info-value {
-        font-size: 20px;
+        font-size: 16px;
       }
 
       #logo {
-        font-size: 24px;
+        font-size: 16px;
       }
     }
   `]
@@ -393,7 +467,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
   // Game configuration
   private readonly SYMBOLS = ['⚔️', '🛡️', '👑', '⚡', '🏈', '🏆', 'V'];
   private readonly REEL_LENGTH = 30;
-  private readonly SYMBOL_HEIGHT = 140;
+  private readonly SYMBOL_HEIGHT = 100;
   private readonly VISIBLE_SYMBOLS = 3;
   private readonly BET_LEVELS = [1, 5, 10, 25, 50, 100, 250, 500];
   
@@ -407,6 +481,19 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     'V': { 3: 10, 4: 30, 5: 100 }
   };
 
+  // 9 paylines
+  private readonly PAYLINES = [
+    [0, 0, 0, 0, 0], // Top row
+    [1, 1, 1, 1, 1], // Middle row
+    [2, 2, 2, 2, 2], // Bottom row
+    [0, 1, 2, 1, 0], // V shape
+    [2, 1, 0, 1, 2], // Inverted V
+    [0, 0, 1, 2, 2], // Diagonal down
+    [2, 2, 1, 0, 0], // Diagonal up
+    [0, 2, 0, 2, 0], // W shape
+    [2, 0, 2, 0, 2]  // M shape
+  ];
+
   // Game state
   balance = 1000;
   currentBet = 10;
@@ -419,6 +506,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
   winTitle = '';
   winAmount = '';
   winningReels = new Set<number>();
+  winningLines = new Set<number>();
 
   private reels: Reel[] = [];
 
@@ -461,6 +549,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     this.balance -= this.currentBet;
     this.lastWin = 0;
     this.winningReels.clear();
+    this.winningLines.clear();
 
     const spinPromises = this.reels.map((reel, index) => {
       return new Promise<void>(resolve => {
@@ -524,21 +613,25 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     const grid = this.getVisibleSymbols();
     let totalWin = 0;
     const winningReelsSet = new Set<number>();
+    const winningLinesSet = new Set<number>();
 
-    for (let row = 0; row < this.VISIBLE_SYMBOLS; row++) {
-      const line = grid.map(col => col[row]);
+    // Check each payline
+    this.PAYLINES.forEach((payline, lineIndex) => {
+      const line = payline.map((row, col) => grid[col][row]);
       const win = this.checkLine(line);
       if (win.amount > 0) {
         totalWin += win.amount;
         win.reels.forEach(r => winningReelsSet.add(r));
+        winningLinesSet.add(lineIndex);
       }
-    }
+    });
 
     if (totalWin > 0) {
       const winAmountValue = totalWin * this.currentBet;
       this.balance += winAmountValue;
       this.lastWin = winAmountValue;
       this.winningReels = winningReelsSet;
+      this.winningLines = winningLinesSet;
       this.showWinAnimation(winAmountValue);
     }
   }
@@ -585,6 +678,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.showWinOverlay = false;
       this.winningReels.clear();
+      this.winningLines.clear();
     }, 3000);
   }
 
