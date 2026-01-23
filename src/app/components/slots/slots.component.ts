@@ -8,6 +8,14 @@ interface Reel {
   position: number;
 }
 
+interface WinResult {
+  lineIndex: number;
+  symbol: string;
+  count: number;
+  amount: number;
+  positions: number[];
+}
+
 @Component({
   selector: 'app-slots',
   standalone: true,
@@ -15,16 +23,71 @@ interface Reel {
   template: `
     <div class="slots-page">
       <header class="slots-header">
-        <button (click)="goBack()" class="btn-back">← Back to Lobby</button>
-        <h1>Minnesota Vikings Slots</h1>
+        <button (click)="goBack()" class="btn-back">Back to Lobby</button>
+        <h1>Vikings Slots</h1>
+        <button (click)="togglePaytable()" class="btn-paytable">
+          Paytable
+        </button>
       </header>
+
+      <div class="paytable-modal" *ngIf="showPaytable" (click)="showPaytable = false">
+        <div class="paytable-content" (click)="$event.stopPropagation()">
+          <h2>PAYTABLE</h2>
+          <div class="paytable-section">
+            <h3>Symbol Payouts</h3>
+            <div class="payout-grid">
+              <div class="payout-row">
+                <span class="symbol">🏆</span>
+                <span>3: 100x | 4: 500x | 5: 2000x</span>
+              </div>
+              <div class="payout-row">
+                <span class="symbol">🏈</span>
+                <span>3: 50x | 4: 150x | 5: 500x</span>
+              </div>
+              <div class="payout-row">
+                <span class="symbol">⚔️</span>
+                <span>3: 30x | 4: 100x | 5: 300x</span>
+              </div>
+              <div class="payout-row">
+                <span class="symbol">🛡️</span>
+                <span>3: 25x | 4: 80x | 5: 250x</span>
+              </div>
+              <div class="payout-row">
+                <span class="symbol">👑</span>
+                <span>3: 20x | 4: 60x | 5: 200x</span>
+              </div>
+              <div class="payout-row">
+                <span class="symbol">⚡</span>
+                <span>3: 15x | 4: 40x | 5: 150x</span>
+              </div>
+              <div class="payout-row">
+                <span class="symbol">V</span>
+                <span>3: 10x | 4: 30x | 5: 100x</span>
+              </div>
+            </div>
+          </div>
+          <div class="paytable-section">
+            <h3>9 Win Lines</h3>
+            <p>Lines 1-3: Horizontal rows</p>
+            <p>Lines 4-5: V shapes</p>
+            <p>Lines 6-7: Diagonals</p>
+            <p>Lines 8-9: W and M shapes</p>
+          </div>
+          <button (click)="showPaytable = false" class="btn-close">Close</button>
+        </div>
+      </div>
       
       <div class="slots-container">
         <div id="slotMachine">
-          <div id="winOverlay" [class.show]="showWinOverlay">
+          <div id="winOverlay" *ngIf="showWinOverlay">
             <div id="winMessage">
               <div class="win-title">{{ winTitle }}</div>
               <div class="win-amount">{{ winAmount }}</div>
+              <div class="win-details" *ngIf="currentWins.length > 0">
+                <div *ngFor="let win of currentWins" class="win-line">
+                  Line {{ win.lineIndex + 1 }}: {{ win.count }}x {{ win.symbol }}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -33,50 +96,56 @@ interface Reel {
           </div>
 
           <div id="reelsContainer">
-            <!-- Payline indicators -->
-            <div class="paylines">
-              <svg class="payline-svg">
-                <!-- Line 1: Top row -->
-                <line x1="0" y1="50" x2="100%" y2="50" class="payline" [class.active]="winningLines.has(0)" stroke="#FFC62F" stroke-width="3"/>
-                <!-- Line 2: Middle row -->
-                <line x1="0" y1="150" x2="100%" y2="150" class="payline" [class.active]="winningLines.has(1)" stroke="#FFC62F" stroke-width="3"/>
-                <!-- Line 3: Bottom row -->
-                <line x1="0" y1="250" x2="100%" y2="250" class="payline" [class.active]="winningLines.has(2)" stroke="#FFC62F" stroke-width="3"/>
-                <!-- Line 4: V shape -->
-                <polyline points="0,50 175,150 350,250 525,150 700,50" class="payline" [class.active]="winningLines.has(3)" stroke="#9C27B0" stroke-width="3" fill="none"/>
-                <!-- Line 5: Inverted V -->
-                <polyline points="0,250 175,150 350,50 525,150 700,250" class="payline" [class.active]="winningLines.has(4)" stroke="#00BCD4" stroke-width="3" fill="none"/>
-                <!-- Line 6: Diagonal down -->
-                <line x1="0" y1="50" x2="100%" y2="250" class="payline" [class.active]="winningLines.has(5)" stroke="#4CAF50" stroke-width="3"/>
-                <!-- Line 7: Diagonal up -->
-                <line x1="0" y1="250" x2="100%" y2="50" class="payline" [class.active]="winningLines.has(6)" stroke="#FF5722" stroke-width="3"/>
-                <!-- Line 8: W shape -->
-                <polyline points="0,50 140,250 280,50 420,250 560,50 700,250" class="payline" [class.active]="winningLines.has(7)" stroke="#E91E63" stroke-width="3" fill="none"/>
-                <!-- Line 9: M shape -->
-                <polyline points="0,250 140,50 280,250 420,50 560,250 700,50" class="payline" [class.active]="winningLines.has(8)" stroke="#FFC107" stroke-width="3" fill="none"/>
-              </svg>
-            </div>
+            <svg class="paylines-svg" viewBox="0 0 700 300" preserveAspectRatio="none">
+              <line x1="0" y1="50" x2="700" y2="50" 
+                    [attr.stroke]="winningLines.has(0) ? '#FFC62F' : '#FFC62F'" 
+                    [attr.opacity]="winningLines.has(0) ? '1' : '0.2'"
+                    stroke-width="3" stroke-dasharray="5,5"/>
+              
+              <line x1="0" y1="150" x2="700" y2="150" 
+                    [attr.stroke]="winningLines.has(1) ? '#FFC62F' : '#FFC62F'" 
+                    [attr.opacity]="winningLines.has(1) ? '1' : '0.2'"
+                    stroke-width="3" stroke-dasharray="5,5"/>
+              
+              <line x1="0" y1="250" x2="700" y2="250" 
+                    [attr.stroke]="winningLines.has(2) ? '#FFC62F' : '#FFC62F'" 
+                    [attr.opacity]="winningLines.has(2) ? '1' : '0.2'"
+                    stroke-width="3" stroke-dasharray="5,5"/>
+              
+              <polyline points="0,50 140,150 280,250 420,150 560,50 700,150" 
+                        [attr.stroke]="winningLines.has(3) ? '#9C27B0' : '#9C27B0'" 
+                        [attr.opacity]="winningLines.has(3) ? '1' : '0.2'"
+                        stroke-width="3" fill="none" stroke-dasharray="5,5"/>
+              
+              <polyline points="0,250 140,150 280,50 420,150 560,250 700,150" 
+                        [attr.stroke]="winningLines.has(4) ? '#00BCD4' : '#00BCD4'" 
+                        [attr.opacity]="winningLines.has(4) ? '1' : '0.2'"
+                        stroke-width="3" fill="none" stroke-dasharray="5,5"/>
+              
+              <line x1="0" y1="50" x2="700" y2="250" 
+                    [attr.stroke]="winningLines.has(5) ? '#4CAF50' : '#4CAF50'" 
+                    [attr.opacity]="winningLines.has(5) ? '1' : '0.2'"
+                    stroke-width="3" stroke-dasharray="5,5"/>
+              
+              <line x1="0" y1="250" x2="700" y2="50" 
+                    [attr.stroke]="winningLines.has(6) ? '#FF5722' : '#FF5722'" 
+                    [attr.opacity]="winningLines.has(6) ? '1' : '0.2'"
+                    stroke-width="3" stroke-dasharray="5,5"/>
+              
+              <polyline points="0,50 140,250 280,50 420,250 560,50 700,250" 
+                        [attr.stroke]="winningLines.has(7) ? '#E91E63' : '#E91E63'" 
+                        [attr.opacity]="winningLines.has(7) ? '1' : '0.2'"
+                        stroke-width="3" fill="none" stroke-dasharray="5,5"/>
+              
+              <polyline points="0,250 140,50 280,250 420,50 560,250 700,50" 
+                        [attr.stroke]="winningLines.has(8) ? '#FFC107' : '#FFC107'" 
+                        [attr.opacity]="winningLines.has(8) ? '1' : '0.2'"
+                        stroke-width="3" fill="none" stroke-dasharray="5,5"/>
+            </svg>
 
             <div id="reels">
-              <div class="reel" [class.winning]="winningReels.has(0)">
-                <div class="win-frame"></div>
-                <div class="reel-inner" id="reel0"></div>
-              </div>
-              <div class="reel" [class.winning]="winningReels.has(1)">
-                <div class="win-frame"></div>
-                <div class="reel-inner" id="reel1"></div>
-              </div>
-              <div class="reel" [class.winning]="winningReels.has(2)">
-                <div class="win-frame"></div>
-                <div class="reel-inner" id="reel2"></div>
-              </div>
-              <div class="reel" [class.winning]="winningReels.has(3)">
-                <div class="win-frame"></div>
-                <div class="reel-inner" id="reel3"></div>
-              </div>
-              <div class="reel" [class.winning]="winningReels.has(4)">
-                <div class="win-frame"></div>
-                <div class="reel-inner" id="reel4"></div>
+              <div class="reel" *ngFor="let r of [0,1,2,3,4]; let i = index">
+                <div class="reel-inner" [id]="'reel' + i"></div>
               </div>
             </div>
           </div>
@@ -86,14 +155,19 @@ interface Reel {
               <div class="info-item">
                 <div class="info-label">Balance</div>
                 <div class="info-value">{{ balance }}</div>
+
               </div>
               <div class="info-item">
                 <div class="info-label">Lines</div>
                 <div class="info-value">9</div>
               </div>
               <div class="info-item">
-                <div class="info-label">Bet</div>
+                <div class="info-label">Bet/Line</div>
                 <div class="info-value">{{ currentBet }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Total Bet</div>
+                <div class="info-value">{{ currentBet * 9 }}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">Win</div>
@@ -104,11 +178,11 @@ interface Reel {
             <div id="controls">
               <div class="control-group">
                 <button (click)="decreaseBet()" [disabled]="isSpinning">-</button>
-                <span style="color: #999;">BET</span>
+                <span class="bet-label">BET</span>
                 <button (click)="increaseBet()" [disabled]="isSpinning">+</button>
               </div>
 
-              <button id="spinButton" (click)="spin()" [disabled]="isSpinning || balance < currentBet">
+              <button id="spinButton" (click)="spin()" [disabled]="isSpinning || balance < (currentBet * 9)">
                 {{ isSpinning ? 'SPINNING...' : 'SPIN' }}
               </button>
 
@@ -126,8 +200,6 @@ interface Reel {
       min-height: 100vh;
       background: #0a0a0a;
       padding: 15px;
-      display: flex;
-      flex-direction: column;
     }
 
     .slots-header {
@@ -136,9 +208,10 @@ interface Reel {
       display: flex;
       align-items: center;
       gap: 15px;
+      justify-content: space-between;
     }
 
-    .btn-back {
+    .btn-back, .btn-paytable {
       background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
       color: #FFC62F;
       border: 2px solid #FFC62F;
@@ -150,7 +223,7 @@ interface Reel {
       transition: all 0.2s;
     }
 
-    .btn-back:hover {
+    .btn-back:hover, .btn-paytable:hover {
       background: linear-gradient(180deg, #5a2d94 0%, #4F2683 100%);
       box-shadow: 0 0 15px rgba(255, 198, 47, 0.5);
       transform: translateY(-2px);
@@ -160,17 +233,92 @@ interface Reel {
       color: #FFC62F;
       font-size: 20px;
       margin: 0;
+      flex: 1;
+      text-align: center;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .paytable-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .paytable-content {
+      background: linear-gradient(180deg, #1a0033 0%, #0d001a 100%);
+      border: 3px solid #FFC62F;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      color: white;
+    }
+
+    .paytable-content h2 {
+      color: #FFC62F;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+
+    .paytable-content h3 {
+      color: #FFC62F;
+      margin: 20px 0 10px;
+      font-size: 20px;
+    }
+
+    .paytable-section {
+      margin-bottom: 20px;
+    }
+
+    .payout-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .payout-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px;
+      background: rgba(79, 38, 131, 0.3);
+      border-radius: 8px;
+    }
+
+    .payout-row .symbol {
+      font-size: 32px;
+      width: 50px;
+      text-align: center;
+    }
+
+    .btn-close {
+      width: 100%;
+      margin-top: 20px;
+      background: linear-gradient(180deg, #FFC62F 0%, #e6a800 100%);
+      color: #000;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     .slots-container {
       max-width: 700px;
       margin: 0 auto;
-      width: 100%;
     }
 
     #slotMachine {
-      width: 100%;
       background: linear-gradient(180deg, #1a0033 0%, #0d001a 100%);
       border: 3px solid #4F2683;
       border-radius: 15px;
@@ -198,9 +346,10 @@ interface Reel {
       background: #000;
       padding: 20px 10px;
       position: relative;
+      height: 340px;
     }
 
-    .paylines {
+    .paylines-svg {
       position: absolute;
       top: 20px;
       left: 10px;
@@ -210,35 +359,10 @@ interface Reel {
       z-index: 5;
     }
 
-    .payline-svg {
-      width: 100%;
-      height: 100%;
-    }
-
-    .payline {
-      opacity: 0.3;
-      transition: all 0.3s;
-      stroke-dasharray: 5, 5;
-    }
-
-    .payline.active {
-      opacity: 1;
-      stroke-width: 4;
-      filter: drop-shadow(0 0 8px currentColor);
-      animation: paylineGlow 0.5s infinite alternate;
-    }
-
-    @keyframes paylineGlow {
-      from { opacity: 1; }
-      to { opacity: 0.6; }
-    }
-
     #reels {
       display: flex;
       justify-content: center;
       gap: 8px;
-      max-width: 680px;
-      margin: 0 auto;
       position: relative;
       z-index: 10;
     }
@@ -268,29 +392,6 @@ interface Reel {
       font-size: 60px;
       background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
       border-bottom: 1px solid #333;
-    }
-
-    .win-frame {
-      position: absolute;
-      top: 100px;
-      left: 0;
-      right: 0;
-      height: 100px;
-      border: 3px solid #FFC62F;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-      z-index: 10;
-    }
-
-    .reel.winning .win-frame {
-      opacity: 1;
-      animation: pulse 0.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
     }
 
     #controlPanel {
@@ -324,7 +425,7 @@ interface Reel {
 
     .info-value {
       color: #FFC62F;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
     }
 
@@ -340,6 +441,12 @@ interface Reel {
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+
+    .bet-label {
+      color: #999;
+      font-size: 12px;
+      font-weight: bold;
     }
 
     button {
@@ -359,10 +466,6 @@ interface Reel {
       background: linear-gradient(180deg, #5a2d94 0%, #4F2683 100%);
       box-shadow: 0 0 15px rgba(255, 198, 47, 0.5);
       transform: translateY(-2px);
-    }
-
-    button:active:not(:disabled) {
-      transform: translateY(0);
     }
 
     button:disabled {
@@ -390,26 +493,15 @@ interface Reel {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: none;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
     }
 
-    #winOverlay.show {
-      display: flex;
-      animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
     #winMessage {
       text-align: center;
-      color: #FFC62F;
       animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
 
@@ -419,57 +511,48 @@ interface Reel {
     }
 
     .win-title {
-      font-size: 36px;
+      font-size: 48px;
       font-weight: bold;
       margin-bottom: 15px;
-      text-shadow: 0 0 20px rgba(255, 198, 47, 0.8);
+      color: #FFC62F;
+      text-shadow: 0 0 30px rgba(255, 198, 47, 1);
+      animation: titlePulse 1s infinite;
+    }
+
+    @keyframes titlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
     }
 
     .win-amount {
-      font-size: 48px;
+      font-size: 64px;
       font-weight: bold;
       color: #fff;
-      text-shadow: 0 0 30px rgba(255, 198, 47, 1);
+      text-shadow: 0 0 40px #FFC62F;
+      margin-bottom: 20px;
     }
 
-    @media (max-width: 768px) {
-      .reel {
-        width: 18%;
-        height: 270px;
-      }
+    .win-details {
+      background: rgba(79, 38, 131, 0.5);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
 
-      :host ::ng-deep .symbol {
-        height: 90px;
-        font-size: 50px;
-      }
-
-      .win-frame {
-        top: 90px;
-        height: 90px;
-      }
-
-      #controls {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .info-value {
-        font-size: 16px;
-      }
-
-      #logo {
-        font-size: 16px;
-      }
+    .win-line {
+      color: #FFC62F;
+      font-size: 18px;
+      margin: 8px 0;
+      font-weight: bold;
     }
   `]
 })
 export class SlotsComponent implements OnInit, AfterViewInit {
-  // Game configuration
   private readonly SYMBOLS = ['⚔️', '🛡️', '👑', '⚡', '🏈', '🏆', 'V'];
   private readonly REEL_LENGTH = 30;
   private readonly SYMBOL_HEIGHT = 100;
   private readonly VISIBLE_SYMBOLS = 3;
-  private readonly BET_LEVELS = [1, 5, 10, 25, 50, 100, 250, 500];
+  private readonly BET_LEVELS = [1, 2, 5, 10, 25, 50, 100];
   
   private readonly PAYTABLE: {[key: string]: {[key: number]: number}} = {
     '🏆': { 3: 100, 4: 500, 5: 2000 },
@@ -481,32 +564,31 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     'V': { 3: 10, 4: 30, 5: 100 }
   };
 
-  // 9 paylines
   private readonly PAYLINES = [
-    [0, 0, 0, 0, 0], // Top row
-    [1, 1, 1, 1, 1], // Middle row
-    [2, 2, 2, 2, 2], // Bottom row
-    [0, 1, 2, 1, 0], // V shape
-    [2, 1, 0, 1, 2], // Inverted V
-    [0, 0, 1, 2, 2], // Diagonal down
-    [2, 2, 1, 0, 0], // Diagonal up
-    [0, 2, 0, 2, 0], // W shape
-    [2, 0, 2, 0, 2]  // M shape
+    [0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1],
+    [2, 2, 2, 2, 2],
+    [0, 1, 2, 1, 0],
+    [2, 1, 0, 1, 2],
+    [0, 0, 1, 2, 2],
+    [2, 2, 1, 0, 0],
+    [0, 2, 0, 2, 0],
+    [2, 0, 2, 0, 2]
   ];
 
-  // Game state
   balance = 1000;
-  currentBet = 10;
+  currentBet = 1;
   lastWin = 0;
   isSpinning = false;
-  betIndex = 2;
+  betIndex = 0;
   
-  // UI state
   showWinOverlay = false;
+  showPaytable = false;
   winTitle = '';
   winAmount = '';
   winningReels = new Set<number>();
   winningLines = new Set<number>();
+  currentWins: WinResult[] = [];
 
   private reels: Reel[] = [];
 
@@ -518,11 +600,15 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     setTimeout(() => this.initReels(), 0);
   }
 
+  togglePaytable() {
+    this.showPaytable = !this.showPaytable;
+  }
+
   private initReels() {
     for (let i = 0; i < 5; i++) {
       const reel: Reel = {
         symbols: [],
-        element: document.getElementById(`reel${i}`),
+        element: document.getElementById('reel' + i),
         position: 0
       };
 
@@ -543,13 +629,15 @@ export class SlotsComponent implements OnInit, AfterViewInit {
   }
 
   spin() {
-    if (this.isSpinning || this.balance < this.currentBet) return;
+    const totalBet = this.currentBet * 9;
+    if (this.isSpinning || this.balance < totalBet) return;
 
     this.isSpinning = true;
-    this.balance -= this.currentBet;
+    this.balance -= totalBet;
     this.lastWin = 0;
     this.winningReels.clear();
     this.winningLines.clear();
+    this.currentWins = [];
 
     const spinPromises = this.reels.map((reel, index) => {
       return new Promise<void>(resolve => {
@@ -571,7 +659,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
           
           reel.position = currentPos;
           if (reel.element) {
-            reel.element.style.transform = `translateY(-${currentPos * this.SYMBOL_HEIGHT}px)`;
+            reel.element.style.transform = 'translateY(-' + (currentPos * this.SYMBOL_HEIGHT) + 'px)';
           }
 
           if (progress < 1) {
@@ -579,7 +667,7 @@ export class SlotsComponent implements OnInit, AfterViewInit {
           } else {
             reel.position = targetPos;
             if (reel.element) {
-              reel.element.style.transform = `translateY(-${targetPos * this.SYMBOL_HEIGHT}px)`;
+              reel.element.style.transform = 'translateY(-' + (targetPos * this.SYMBOL_HEIGHT) + 'px)';
             }
             resolve();
           }
@@ -611,33 +699,42 @@ export class SlotsComponent implements OnInit, AfterViewInit {
 
   private checkWin() {
     const grid = this.getVisibleSymbols();
-    let totalWin = 0;
+    let totalWinMultiplier = 0;
     const winningReelsSet = new Set<number>();
     const winningLinesSet = new Set<number>();
+    const wins: WinResult[] = [];
 
-    // Check each payline
     this.PAYLINES.forEach((payline, lineIndex) => {
       const line = payline.map((row, col) => grid[col][row]);
       const win = this.checkLine(line);
+      
       if (win.amount > 0) {
-        totalWin += win.amount;
+        totalWinMultiplier += win.amount;
         win.reels.forEach(r => winningReelsSet.add(r));
         winningLinesSet.add(lineIndex);
+        wins.push({
+          lineIndex,
+          symbol: win.symbol,
+          count: win.count,
+          amount: win.amount,
+          positions: win.reels
+        });
       }
     });
 
-    if (totalWin > 0) {
-      const winAmountValue = totalWin * this.currentBet;
-      this.balance += winAmountValue;
-      this.lastWin = winAmountValue;
+    if (totalWinMultiplier > 0) {
+      const totalWinAmount = totalWinMultiplier * this.currentBet;
+      this.balance += totalWinAmount;
+      this.lastWin = totalWinAmount;
       this.winningReels = winningReelsSet;
       this.winningLines = winningLinesSet;
-      this.showWinAnimation(winAmountValue);
+      this.currentWins = wins;
+      this.showWinAnimation(totalWinAmount, totalWinMultiplier);
     }
   }
 
-  private checkLine(symbols: string[]): { amount: number; reels: number[] } {
-    let bestWin = { amount: 0, reels: [] as number[] };
+  private checkLine(symbols: string[]): { amount: number; reels: number[]; symbol: string; count: number } {
+    let bestWin = { amount: 0, reels: [] as number[], symbol: '', count: 0 };
 
     for (const symbol of this.SYMBOLS) {
       let count = 0;
@@ -654,7 +751,9 @@ export class SlotsComponent implements OnInit, AfterViewInit {
         if (amount > bestWin.amount) {
           bestWin = {
             amount: amount,
-            reels: Array.from({ length: count }, (_, i) => i)
+            reels: Array.from({ length: count }, (_, i) => i),
+            symbol: symbol,
+            count: count
           };
         }
       }
@@ -663,23 +762,27 @@ export class SlotsComponent implements OnInit, AfterViewInit {
     return bestWin;
   }
 
-  private showWinAnimation(amount: number) {
-    if (amount >= this.currentBet * 100) {
-      this.winTitle = '🏆 MEGA WIN! 🏆';
-    } else if (amount >= this.currentBet * 50) {
-      this.winTitle = '⚡ BIG WIN! ⚡';
+  private showWinAnimation(amount: number, multiplier: number) {
+    if (multiplier >= 1000) {
+      this.winTitle = 'MEGA JACKPOT!';
+    } else if (multiplier >= 500) {
+      this.winTitle = 'JACKPOT!';
+    } else if (multiplier >= 100) {
+      this.winTitle = 'BIG WIN!';
+    } else if (multiplier >= 50) {
+      this.winTitle = 'GREAT WIN!';
     } else {
       this.winTitle = 'WIN!';
     }
 
-    this.winAmount = `$${amount}`;
+    this.winAmount = '$' + amount;
     this.showWinOverlay = true;
 
     setTimeout(() => {
       this.showWinOverlay = false;
       this.winningReels.clear();
       this.winningLines.clear();
-    }, 3000);
+    }, 4000);
   }
 
   increaseBet() {
