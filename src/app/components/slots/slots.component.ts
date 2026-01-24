@@ -550,7 +550,10 @@ interface WinResult {
     .symbols {
       display: flex;
       flex-direction: column;
-      position: relative;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
     }
 
     .symbol {
