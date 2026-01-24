@@ -874,7 +874,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    setTimeout(() => this.initReels(), 0);
+    setTimeout(() => this.initReels(), 100);
   }
 
   ngOnDestroy() {
@@ -926,6 +926,9 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   private initReels() {
     this.reels = this.REEL_STRIPS.map((strip, index) => {
       const reelElement = document.getElementById('reel-' + index);
+      if (!reelElement) {
+        console.error('Reel element not found:', 'reel-' + index);
+      }
       return {
         symbols: [...strip, ...strip, ...strip],
         element: reelElement,
@@ -933,15 +936,24 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
       };
     });
 
-    this.reels.forEach(reel => {
+    this.reels.forEach((reel, index) => {
       if (reel.element) {
-        reel.element.style.transform = 'translateY(-' + (reel.position * this.SYMBOL_HEIGHT) + 'px)';
+        const transform = 'translateY(-' + (reel.position * this.SYMBOL_HEIGHT) + 'px)';
+        reel.element.style.transform = transform;
+        reel.element.style.transition = 'none';
+      } else {
+        console.error('Reel element is null for index:', index);
       }
     });
   }
 
   spin() {
-    if (this.isSpinning || this.balance < this.currentBet * 25) return;
+    if (this.isSpinning || this.balance < this.currentBet * 25) {
+      console.log('Spin blocked:', { isSpinning: this.isSpinning, balance: this.balance, required: this.currentBet * 25 });
+      return;
+    }
+
+    console.log('Starting spin with', this.reels.length, 'reels');
 
     this.isSpinning = true;
     this.balance -= this.currentBet * 25;
@@ -958,6 +970,8 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
         const startPos = reel.position;
         const duration = 2000 + index * 200;
         const startTime = Date.now();
+
+        console.log(`Reel ${index}: startPos=${startPos}, targetPos=${targetPos}, element=${!!reel.element}`);
 
         const animate = () => {
           const elapsed = Date.now() - startTime;
@@ -977,6 +991,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
             if (reel.element) {
               reel.element.style.transform = 'translateY(-' + (targetPos * this.SYMBOL_HEIGHT) + 'px)';
             }
+            console.log(`Reel ${index} finished`);
             resolve();
           }
         };
@@ -986,6 +1001,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     Promise.all(spinPromises).then(() => {
+      console.log('All reels finished spinning');
       this.checkWin();
       this.isSpinning = false;
     });
