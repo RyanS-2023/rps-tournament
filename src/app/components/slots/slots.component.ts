@@ -931,27 +931,32 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initReels() {
-    this.reels = this.REEL_STRIPS.map((strip, index) => {
+    // Update existing reels array instead of creating new one
+    for (let index = 0; index < this.REEL_STRIPS.length; index++) {
+      const strip = this.REEL_STRIPS[index];
       const reelElement = document.getElementById('reel-' + index);
+      
       if (!reelElement) {
         console.error('Reel element not found:', 'reel-' + index);
       }
-      return {
+      
+      // Update the existing reel object
+      this.reels[index] = {
         symbols: [...strip, ...strip, ...strip],
         element: reelElement,
-        position: Math.floor(Math.random() * strip.length)
+        position: 0
       };
-    });
-
-    this.reels.forEach((reel, index) => {
-      if (reel.element) {
-        const transform = 'translateY(-' + (reel.position * this.SYMBOL_HEIGHT) + 'px)';
-        reel.element.style.transform = transform;
-        reel.element.style.transition = 'none';
+      
+      if (reelElement) {
+        const transform = 'translateY(0px)';
+        reelElement.style.transform = transform;
+        reelElement.style.transition = 'none';
+        reelElement.style.willChange = 'transform';
+        console.log(`Initialized reel ${index} with element, transform:`, transform);
       } else {
         console.error('Reel element is null for index:', index);
       }
-    });
+    }
   }
 
   spin() {
@@ -988,7 +993,13 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
           
           reel.position = currentPos;
           if (reel.element) {
-            reel.element.style.transform = 'translateY(-' + (currentPos * this.SYMBOL_HEIGHT) + 'px)';
+            const transformValue = 'translateY(-' + (currentPos * this.SYMBOL_HEIGHT) + 'px)';
+            reel.element.style.transform = transformValue;
+            
+            // Log first frame to verify transform is applied
+            if (elapsed < 100) {
+              console.log(`Reel ${index} transform:`, transformValue, 'computed:', window.getComputedStyle(reel.element).transform);
+            }
           }
 
           if (progress < 1) {
