@@ -551,7 +551,6 @@ interface WinResult {
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: transform 0.1s ease-out;
     }
 
     .symbol {
@@ -860,7 +859,12 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   winningLines = new Set<number>();
   currentWins: WinResult[] = [];
 
-  reels: Reel[] = [];
+  // Initialize reels array with placeholder data so DOM elements render immediately
+  reels: Reel[] = Array(5).fill(null).map((_, index) => ({
+    symbols: this.REEL_STRIPS[index] ? [...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index]] : [],
+    element: null,
+    position: 0
+  }));
   private userId: string = '';
 
   constructor(
