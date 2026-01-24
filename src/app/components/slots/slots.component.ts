@@ -53,6 +53,7 @@ interface WinResult {
                   <span>5 = <strong>{{ calculatePayout('🏆', 5) }}</strong></span>
                   <span>4 = <strong>{{ calculatePayout('🏆', 4) }}</strong></span>
                   <span>3 = <strong>{{ calculatePayout('🏆', 3) }}</strong></span>
+                  <span>2 = <strong>{{ calculatePayout('🏆', 2) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row high">
@@ -61,6 +62,7 @@ interface WinResult {
                   <span>5 = <strong>{{ calculatePayout('🏈', 5) }}</strong></span>
                   <span>4 = <strong>{{ calculatePayout('🏈', 4) }}</strong></span>
                   <span>3 = <strong>{{ calculatePayout('🏈', 3) }}</strong></span>
+                  <span>2 = <strong>{{ calculatePayout('🏈', 2) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row high">
@@ -69,6 +71,7 @@ interface WinResult {
                   <span>5 = <strong>{{ calculatePayout('⚔️', 5) }}</strong></span>
                   <span>4 = <strong>{{ calculatePayout('⚔️', 4) }}</strong></span>
                   <span>3 = <strong>{{ calculatePayout('⚔️', 3) }}</strong></span>
+                  <span>2 = <strong>{{ calculatePayout('⚔️', 2) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row medium">
@@ -77,6 +80,7 @@ interface WinResult {
                   <span>5 = <strong>{{ calculatePayout('🛡️', 5) }}</strong></span>
                   <span>4 = <strong>{{ calculatePayout('🛡️', 4) }}</strong></span>
                   <span>3 = <strong>{{ calculatePayout('🛡️', 3) }}</strong></span>
+                  <span>2 = <strong>{{ calculatePayout('🛡️', 2) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row medium">
@@ -85,6 +89,7 @@ interface WinResult {
                   <span>5 = <strong>{{ calculatePayout('👑', 5) }}</strong></span>
                   <span>4 = <strong>{{ calculatePayout('👑', 4) }}</strong></span>
                   <span>3 = <strong>{{ calculatePayout('👑', 3) }}</strong></span>
+                  <span>2 = <strong>{{ calculatePayout('👑', 2) }}</strong></span>
                 </div>
               </div>
               <div class="payout-row low">
@@ -118,6 +123,9 @@ interface WinResult {
             <h3>📊 25 Paylines</h3>
             <p class="lines-desc">Wins pay from left to right on active paylines</p>
             <p class="lines-desc">All 25 lines active every spin</p>
+            <p class="lines-desc">Multiple winning lines award multiple payouts</p>
+            <p class="lines-desc highlight">Higher value symbols pay on 2+ matches</p>
+            <p class="lines-desc highlight">Lower value symbols pay on 3+ matches</p>
           </div>
 
           <div class="paytable-section">
@@ -183,67 +191,62 @@ interface WinResult {
             </svg>
 
             <div id="reels">
-              <div class="reel" *ngFor="let r of [0,1,2,3,4]; let i = index">
-                <div class="reel-inner" [id]="'reel' + i"></div>
+              <div class="reel" *ngFor="let reel of reels; let i = index">
+                <div class="symbols" [id]="'reel-' + i">
+                  <div *ngFor="let symbol of reel.symbols" 
+                       class="symbol"
+                       [class.winning]="false">
+                    {{ symbol }}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div id="controlPanel">
-            <div id="infoDisplay">
+          <div id="controls">
+            <div class="info-panel">
               <div class="info-item">
-                <div class="info-label">Balance</div>
-                <div class="info-value">{{ balance }}</div>
+                <span class="label">Credits:</span>
+                <span class="value">{{ balance }}</span>
               </div>
               <div class="info-item">
-                <div class="info-label">Lines</div>
-                <div class="info-value">25</div>
+                <span class="label">Bet/Line:</span>
+                <span class="value">{{ currentBet }}</span>
               </div>
               <div class="info-item">
-                <div class="info-label">Bet/Line</div>
-                <div class="info-value">{{ currentBet }}</div>
+                <span class="label">Total Bet:</span>
+                <span class="value">{{ currentBet * 25 }}</span>
               </div>
               <div class="info-item">
-                <div class="info-label">Total Bet</div>
-                <div class="info-value">{{ currentBet * 25 }}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">Win</div>
-                <div class="info-value win-value">{{ lastWin }}</div>
+                <span class="label">Last Win:</span>
+                <span class="value win-value">{{ lastWin }}</span>
               </div>
             </div>
 
-            <div id="controls">
-              <div class="control-group">
-                <button (click)="decreaseBet()" [disabled]="isSpinning">-</button>
-                <span class="bet-label">BET</span>
-                <button (click)="increaseBet()" [disabled]="isSpinning">+</button>
-              </div>
-
-              <button id="spinButton" (click)="spin()" [disabled]="isSpinning || balance < (currentBet * 25) || isSaving">
-                {{ isSpinning ? 'SPINNING...' : isSaving ? 'SAVING...' : 'SPIN' }}
+            <div class="button-panel">
+              <button (click)="decreaseBet()" [disabled]="isSpinning" class="btn-bet">-</button>
+              <button (click)="spin()" [disabled]="isSpinning || balance < currentBet * 25" class="btn-spin">
+                {{ isSpinning ? 'SPINNING...' : 'SPIN' }}
               </button>
-
-              <div class="control-group">
-                <button (click)="maxBet()" [disabled]="isSpinning">MAX BET</button>
-              </div>
+              <button (click)="increaseBet()" [disabled]="isSpinning" class="btn-bet">+</button>
             </div>
+
+            <button (click)="maxBet()" [disabled]="isSpinning" class="btn-max-bet">MAX BET</button>
           </div>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    /* Previous styles remain the same, adding new ones: */
-    
     .daily-banner {
-      max-width: 700px;
-      margin: 0 auto 20px;
-      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-      border: 3px solid #FFC62F;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #4F2683 0%, #FFC62F 100%);
+      padding: 15px;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
       animation: slideDown 0.5s ease-out;
     }
 
@@ -292,7 +295,6 @@ interface WinResult {
       color: #fff;
     }
 
-    /* Keep all existing styles from previous version */
     .slots-page {
       min-height: 100vh;
       background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
@@ -424,8 +426,9 @@ interface WinResult {
 
     .payout-values {
       display: flex;
-      gap: 15px;
-      font-size: 14px;
+      gap: 12px;
+      font-size: 13px;
+      flex-wrap: wrap;
     }
 
     .payout-values strong {
@@ -436,6 +439,15 @@ interface WinResult {
       color: #bbb;
       font-size: 14px;
       margin-bottom: 10px;
+    }
+
+    .lines-desc.highlight {
+      color: #FFC62F;
+      font-weight: bold;
+      background: rgba(255, 198, 47, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 3px solid #FFC62F;
     }
 
     .rules-list {
@@ -451,207 +463,232 @@ interface WinResult {
 
     .btn-close {
       width: 100%;
-      margin-top: 25px;
-      background: linear-gradient(180deg, #FFC62F 0%, #e6a800 100%);
-      color: #000;
-      border: none;
-      padding: 14px;
-      font-size: 18px;
+      background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
+      color: #FFC62F;
+      border: 2px solid #FFC62F;
+      padding: 12px;
+      font-size: 16px;
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
+      margin-top: 20px;
       transition: all 0.2s;
     }
 
     .btn-close:hover {
-      background: linear-gradient(180deg, #ffd454 0%, #FFC62F 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(255, 198, 47, 0.5);
+      background: linear-gradient(180deg, #5a2d94 0%, #4F2683 100%);
+      box-shadow: 0 0 15px rgba(255, 198, 47, 0.5);
     }
 
     .slots-container {
-      max-width: 700px;
-      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #slotMachine {
+      max-width: 700px;
+      width: 100%;
       background: linear-gradient(180deg, #1a0033 0%, #0d001a 100%);
-      border: 4px solid #4F2683;
-      border-radius: 15px;
-      box-shadow: 0 0 60px rgba(79, 38, 131, 0.6);
-      overflow: hidden;
+      border: 4px solid #FFC62F;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255, 198, 47, 0.3);
+      padding: 20px;
       position: relative;
     }
 
     #header {
-      background: linear-gradient(90deg, #4F2683 0%, #79228B 50%, #4F2683 100%);
-      padding: 15px;
       text-align: center;
-      border-bottom: 4px solid #FFC62F;
+      margin-bottom: 15px;
     }
 
     #logo {
       color: #FFC62F;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
-      letter-spacing: 3px;
       text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+      letter-spacing: 3px;
     }
 
     #reelsContainer {
-      background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
-      padding: 20px 15px;
       position: relative;
-      height: 355px;
+      background: linear-gradient(180deg, #2a1a4e 0%, #1a0a2e 100%);
+      border: 3px solid #4F2683;
+      border-radius: 15px;
+      padding: 10px;
+      margin-bottom: 15px;
+      overflow: hidden;
     }
 
     .paylines-svg {
       position: absolute;
-      top: 20px;
-      left: 15px;
-      right: 15px;
-      bottom: 20px;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
-      z-index: 5;
+      z-index: 1;
     }
 
     #reels {
       display: flex;
-      justify-content: center;
-      gap: 10px;
+      gap: 8px;
       position: relative;
-      z-index: 10;
+      z-index: 2;
     }
 
     .reel {
-      width: 100px;
-      height: 315px;
-      background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-      border: 3px solid #333;
+      flex: 1;
+      background: rgba(26, 10, 46, 0.8);
+      border: 2px solid #4F2683;
       border-radius: 10px;
-      position: relative;
       overflow: hidden;
-      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9),
-                  0 0 15px rgba(79, 38, 131, 0.3);
+      height: 315px;
+      position: relative;
     }
 
-    .reel-inner {
-      position: absolute;
-      width: 100%;
-      transition: transform 0.05s linear;
+    .symbols {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.1s ease-out;
     }
 
-    :host ::ng-deep .symbol {
+    .symbol {
       height: 105px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 64px;
-      background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
-      border-bottom: 1px solid #444;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      font-size: 60px;
+      background: rgba(79, 38, 131, 0.3);
+      border-bottom: 1px solid rgba(255, 198, 47, 0.2);
+      user-select: none;
     }
 
-    #controlPanel {
-      background: linear-gradient(180deg, #1a0033 0%, #0d001a 100%);
-      padding: 20px;
-      border-top: 3px solid #4F2683;
+    .symbol.winning {
+      animation: pulse 0.5s ease-in-out infinite;
     }
 
-    #infoDisplay {
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    #controls {
       display: flex;
-      justify-content: space-around;
-      margin-bottom: 18px;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .info-panel {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: rgba(79, 38, 131, 0.3);
       padding: 15px;
-      background: rgba(0, 0, 0, 0.5);
       border-radius: 10px;
       border: 2px solid #4F2683;
     }
 
     .info-item {
       text-align: center;
-      flex: 1;
     }
 
-    .info-label {
-      color: #aaa;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    .label {
+      display: block;
+      color: #bbb;
+      font-size: 12px;
       margin-bottom: 5px;
-      font-weight: bold;
     }
 
-    .info-value {
+    .value {
+      display: block;
       color: #FFC62F;
       font-size: 18px;
       font-weight: bold;
-      text-shadow: 0 0 10px rgba(255, 198, 47, 0.5);
     }
 
     .win-value {
       color: #4CAF50;
-      font-size: 20px;
     }
 
-    #controls {
+    .button-panel {
       display: flex;
-      justify-content: center;
+      gap: 10px;
       align-items: center;
-      gap: 20px;
     }
 
-    .control-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .bet-label {
-      color: #FFC62F;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    button {
+    .btn-bet {
       background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
       color: #FFC62F;
       border: 2px solid #FFC62F;
-      padding: 10px 18px;
-      font-size: 16px;
+      padding: 15px 30px;
+      font-size: 24px;
       font-weight: bold;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s;
-      min-width: 45px;
     }
 
-    button:hover:not(:disabled) {
+    .btn-bet:hover:not(:disabled) {
       background: linear-gradient(180deg, #5a2d94 0%, #4F2683 100%);
-      box-shadow: 0 0 20px rgba(255, 198, 47, 0.6);
+      box-shadow: 0 0 15px rgba(255, 198, 47, 0.5);
       transform: translateY(-2px);
     }
 
-    button:disabled {
-      opacity: 0.3;
+    .btn-bet:disabled {
+      opacity: 0.5;
       cursor: not-allowed;
-      transform: none;
     }
 
-    #spinButton {
-      background: linear-gradient(180deg, #FFC62F 0%, #e6a800 100%);
-      color: #000;
-      font-size: 22px;
-      padding: 15px 45px;
-      border: 3px solid #fff;
-      box-shadow: 0 5px 25px rgba(255, 198, 47, 0.5);
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    .btn-spin {
+      flex: 1;
+      background: linear-gradient(180deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      border: 3px solid #FFC62F;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
     }
 
-    #spinButton:hover:not(:disabled) {
-      background: linear-gradient(180deg, #ffd454 0%, #FFC62F 100%);
-      box-shadow: 0 8px 35px rgba(255, 198, 47, 0.8);
-      transform: translateY(-3px);
+    .btn-spin:hover:not(:disabled) {
+      background: linear-gradient(180deg, #5cbf60 0%, #4CAF50 100%);
+      box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-spin:disabled {
+      background: linear-gradient(180deg, #666 0%, #555 100%);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-max-bet {
+      width: 100%;
+      background: linear-gradient(180deg, #FF6B6B 0%, #ee5a52 100%);
+      color: white;
+      border: 2px solid #FFC62F;
+      padding: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-max-bet:hover:not(:disabled) {
+      background: linear-gradient(180deg, #ff7f7f 0%, #FF6B6B 100%);
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-max-bet:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     #winOverlay {
@@ -660,42 +697,50 @@ interface WinResult {
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.96);
+      background: rgba(0, 0, 0, 0.92);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
-      animation: fadeIn 0.3s;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      border-radius: 20px;
     }
 
     #winMessage {
       text-align: center;
-      animation: scaleIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      animation: winPop 0.5s ease-out;
       max-width: 90%;
     }
 
-    @keyframes scaleIn {
-      from { transform: scale(0); }
-      to { transform: scale(1); }
+    @keyframes winPop {
+      0% {
+        transform: scale(0.3);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     .win-title {
-      font-size: 52px;
+      font-size: 48px;
       font-weight: bold;
-      margin-bottom: 20px;
       color: #FFC62F;
-      text-shadow: 0 0 40px #FFC62F, 0 0 60px #FFC62F;
-      animation: titlePulse 1.5s infinite;
+      text-shadow: 0 0 30px #FFC62F, 0 0 50px #FFC62F;
+      margin-bottom: 20px;
+      animation: glow 1s ease-in-out infinite;
     }
 
-    @keyframes titlePulse {
-      0%, 100% { transform: scale(1); text-shadow: 0 0 40px #FFC62F; }
-      50% { transform: scale(1.05); text-shadow: 0 0 60px #FFC62F, 0 0 80px #FFC62F; }
+    @keyframes glow {
+      0%, 100% {
+        text-shadow: 0 0 30px #FFC62F, 0 0 50px #FFC62F;
+      }
+      50% {
+        text-shadow: 0 0 50px #FFC62F, 0 0 80px #FFC62F, 0 0 100px #FFC62F;
+      }
     }
 
     .win-amount {
@@ -750,23 +795,52 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly VISIBLE_SYMBOLS = 3;
   private readonly BET_LEVELS = [1, 2, 5, 10, 20, 50, 100];
   
+  // ENHANCED PAYTABLE - Now includes 2-symbol wins for premium symbols
   private readonly PAYTABLE: {[key: string]: {[key: number]: number}} = {
-    '🏆': { 5: 1000, 4: 250, 3: 50 },
-    '🏈': { 5: 500, 4: 100, 3: 25 },
-    '⚔️': { 5: 300, 4: 75, 3: 20 },
-    '🛡️': { 5: 200, 4: 50, 3: 15 },
-    '👑': { 5: 150, 4: 40, 3: 10 },
-    '⚡': { 5: 100, 4: 30, 3: 8 },
-    '💜': { 5: 80, 4: 25, 3: 5 },
-    'V': { 5: 60, 4: 20, 3: 5 }
+    '🏆': { 5: 1000, 4: 250, 3: 50, 2: 10 },   // Trophy - Jackpot symbol
+    '🏈': { 5: 500, 4: 100, 3: 25, 2: 5 },     // Football - High symbol
+    '⚔️': { 5: 300, 4: 75, 3: 20, 2: 4 },      // Sword - High symbol
+    '🛡️': { 5: 200, 4: 50, 3: 15, 2: 3 },      // Shield - Medium symbol
+    '👑': { 5: 150, 4: 40, 3: 10, 2: 2 },      // Crown - Medium symbol
+    '⚡': { 5: 100, 4: 30, 3: 8 },              // Lightning - Low symbol (3+ only)
+    '💜': { 5: 80, 4: 25, 3: 5 },               // Purple heart - Low symbol (3+ only)
+    'V': { 5: 60, 4: 20, 3: 5 }                 // V - Low symbol (3+ only)
   };
 
+  // 25 Paylines matching the visual display
   private readonly PAYLINES = [
-    [0, 0, 0, 0, 0], [0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [2, 1, 1, 1, 2], [2, 2, 2, 2, 2],
-    [0, 1, 2, 1, 0], [2, 1, 0, 1, 2], [0, 1, 0, 1, 0], [2, 1, 2, 1, 2], [0, 0, 1, 2, 2],
-    [2, 2, 1, 0, 0], [1, 0, 1, 2, 1], [1, 2, 1, 0, 1], [0, 1, 0, 2, 0], [2, 1, 2, 0, 2],
-    [0, 0, 0, 1, 2], [2, 2, 2, 1, 0], [1, 0, 0, 0, 1], [1, 2, 2, 2, 1], [0, 2, 0, 2, 0],
-    [2, 0, 2, 0, 2], [0, 1, 2, 0, 1], [2, 1, 0, 2, 1], [1, 0, 1, 0, 1], [1, 2, 1, 2, 1]
+    // Straight lines (5)
+    [0, 0, 0, 0, 0], // Line 1 - Top
+    [1, 1, 1, 1, 1], // Line 2 - Middle
+    [2, 2, 2, 2, 2], // Line 3 - Bottom
+    [0, 1, 1, 1, 0], // Line 4
+    [2, 1, 1, 1, 2], // Line 5
+    
+    // V and inverted V patterns (4)
+    [0, 1, 2, 1, 0], // Line 6 - V shape
+    [2, 1, 0, 1, 2], // Line 7 - Inverted V
+    [0, 1, 0, 1, 0], // Line 8
+    [2, 1, 2, 1, 2], // Line 9
+    
+    // Zigzag patterns (6)
+    [0, 0, 1, 2, 2], // Line 10
+    [2, 2, 1, 0, 0], // Line 11
+    [1, 0, 1, 2, 1], // Line 12
+    [1, 2, 1, 0, 1], // Line 13
+    [0, 1, 0, 2, 0], // Line 14
+    [2, 1, 2, 0, 2], // Line 15
+    
+    // Diagonal and complex patterns (10)
+    [0, 0, 0, 1, 2], // Line 16
+    [2, 2, 2, 1, 0], // Line 17
+    [1, 0, 0, 0, 1], // Line 18
+    [1, 2, 2, 2, 1], // Line 19
+    [0, 2, 0, 2, 0], // Line 20
+    [2, 0, 2, 0, 2], // Line 21
+    [0, 1, 2, 0, 1], // Line 22
+    [2, 1, 0, 2, 1], // Line 23
+    [1, 0, 1, 0, 1], // Line 24
+    [1, 2, 1, 2, 1]  // Line 25
   ];
 
   balance = 0;
@@ -786,7 +860,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   winningLines = new Set<number>();
   currentWins: WinResult[] = [];
 
-  private reels: Reel[] = [];
+  reels: Reel[] = [];
   private userId: string = '';
 
   constructor(
@@ -804,7 +878,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Save balance on component destroy
     if (this.userId) {
       this.saveBalance();
     }
@@ -823,7 +896,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
       
       const today = new Date().toISOString().split('T')[0];
       if (credits.lastDailyCredit === today && this.balance === 0) {
-        // Show daily banner if credits were just awarded
         this.showDailyBanner = true;
         setTimeout(() => this.showDailyBanner = false, 5000);
       }
@@ -852,63 +924,46 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initReels() {
-    for (let i = 0; i < 5; i++) {
-      const reel: Reel = {
-        symbols: this.REEL_STRIPS[i],
-        element: document.getElementById('reel' + i),
-        position: 0
+    this.reels = this.REEL_STRIPS.map((strip, index) => {
+      const reelElement = document.getElementById('reel-' + index);
+      return {
+        symbols: [...strip, ...strip, ...strip],
+        element: reelElement,
+        position: Math.floor(Math.random() * strip.length)
       };
+    });
 
+    this.reels.forEach(reel => {
       if (reel.element) {
-        const fullStrip = [...this.REEL_STRIPS[i], ...this.REEL_STRIPS[i]];
-        fullStrip.forEach(symbol => {
-          const symbolEl = document.createElement('div');
-          symbolEl.className = 'symbol';
-          symbolEl.textContent = symbol;
-          reel.element!.appendChild(symbolEl);
-        });
+        reel.element.style.transform = 'translateY(-' + (reel.position * this.SYMBOL_HEIGHT) + 'px)';
       }
-
-      this.reels.push(reel);
-    }
+    });
   }
 
-  async spin() {
-    const totalBet = this.currentBet * 25;
-    if (this.isSpinning || this.balance < totalBet || this.isSaving) return;
+  spin() {
+    if (this.isSpinning || this.balance < this.currentBet * 25) return;
 
     this.isSpinning = true;
-    this.balance -= totalBet;
+    this.balance -= this.currentBet * 25;
     this.lastWin = 0;
     this.winningReels.clear();
     this.winningLines.clear();
     this.currentWins = [];
 
-    // Save wager to Firebase
-    try {
-      await this.creditsService.recordWager(this.userId, totalBet);
-    } catch (error) {
-      console.error('Error recording wager:', error);
-    }
-
     const spinPromises = this.reels.map((reel, index) => {
       return new Promise<void>(resolve => {
-        const spinDuration = 2000 + (index * 250);
-        const startTime = Date.now();
-        const startPos = reel.position;
         const stripLength = this.REEL_STRIPS[index].length;
-        const spins = 4 + index;
-        const randomStop = Math.floor(Math.random() * stripLength);
-        const targetPos = (startPos + (stripLength * spins) + randomStop) % stripLength;
+        const spins = 3 + index * 0.5;
+        const targetPos = Math.floor(Math.random() * stripLength) + stripLength * spins;
+        const startPos = reel.position;
+        const duration = 2000 + index * 200;
+        const startTime = Date.now();
 
         const animate = () => {
           const elapsed = Date.now() - startTime;
-          const progress = Math.min(elapsed / spinDuration, 1);
-          
+          const progress = Math.min(elapsed / duration, 1);
           const easeOut = 1 - Math.pow(1 - progress, 3);
-          const totalDistance = (stripLength * spins) + (targetPos >= startPos ? targetPos - startPos : stripLength - startPos + targetPos);
-          const currentDistance = totalDistance * easeOut;
-          const currentPos = (startPos + currentDistance) % stripLength;
+          const currentPos = startPos + (targetPos - startPos) * easeOut;
           
           reel.position = currentPos;
           if (reel.element) {
@@ -957,6 +1012,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     const winningLinesSet = new Set<number>();
     const wins: WinResult[] = [];
 
+    // Check each payline
     this.PAYLINES.forEach((payline, lineIndex) => {
       const lineSymbols = payline.map((row, col) => grid[col][row]);
       const lineWin = this.checkLine(lineSymbols);
@@ -983,7 +1039,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.winningLines = winningLinesSet;
       this.currentWins = wins;
       
-      // Save win to Firebase
       try {
         await this.creditsService.recordWin(this.userId, totalWinCoins);
       } catch (error) {
@@ -992,27 +1047,32 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
 
       this.showWinAnimation(totalWinCoins);
     } else {
-      // Save balance even on losses
       await this.saveBalance();
     }
   }
 
+  // ENHANCED WIN DETECTION - Now properly checks for 2+ symbol matches
   private checkLine(symbols: string[]): { payout: number; positions: number[]; symbol: string; count: number } {
     let bestWin = { payout: 0, positions: [] as number[], symbol: '', count: 0 };
 
+    // Check each unique symbol
     for (const symbol of this.SYMBOLS) {
       let count = 0;
+      
+      // Count consecutive matches from left to right
       for (let i = 0; i < symbols.length; i++) {
         if (symbols[i] === symbol) {
           count++;
         } else {
-          break;
+          break; // Stop at first non-match (left-to-right rule)
         }
       }
 
-      if (count >= 3 && this.PAYTABLE[symbol]?.[count]) {
+      // Check if this symbol has a payout for this count
+      if (count >= 2 && this.PAYTABLE[symbol]?.[count]) {
         const payout = this.PAYTABLE[symbol][count] * this.currentBet;
         
+        // Keep the highest paying win for this line
         if (payout > bestWin.payout) {
           bestWin = {
             payout,
@@ -1087,7 +1147,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goBack() {
-    this.saveBalance(); // Save before leaving
+    this.saveBalance();
     this.router.navigate(['/lobby']);
   }
 }
