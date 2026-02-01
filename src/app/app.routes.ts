@@ -41,7 +41,11 @@ export const routes: Routes = [
   loadComponent: () => import('./components/slots/slots.component').then(m => m.SlotsComponent),
   canActivate: [AuthGuard]
   },
-
+  {
+  path: 'video-poker',
+  loadComponent: () => import('./components/video-poker/video-poker.component').then(m => m.VideoPokerComponent),
+  canActivate: [AuthGuard]
+  },
   { 
     path: 'game/:tournamentId', 
     component: GameComponent,

@@ -187,12 +187,14 @@ import { Auth } from '@angular/fire/auth';
       gap: 10px;
       color: white;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
     
     .user-info > span {
       word-wrap: break-word;
       overflow-wrap: break-word;
       max-width: 200px;
+      margin-right: auto;
     }
     
     .btn-logout,
