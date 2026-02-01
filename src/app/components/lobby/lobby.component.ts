@@ -17,6 +17,7 @@ import { Auth } from '@angular/fire/auth';
         <div class="user-info">
           <span>{{ userEmail }}</span>
           <button (click)="viewSlots()" class="btn-slots">SKOL</button>
+          <button (click)="viewVideoPoker()" class="btn-poker">POKER</button>
           <button (click)="viewFriends()" class="btn-friends">Friends</button>
           <button (click)="viewLeaderboard()" class="btn-leaderboard">Leaderboard</button>
           <button (click)="viewStats()" class="btn-stats">Stats</button>
@@ -198,7 +199,8 @@ import { Auth } from '@angular/fire/auth';
     .btn-stats,
     .btn-leaderboard,
     .btn-friends,
-    .btn-slots {
+    .btn-slots,
+    .btn-poker {
       padding: 10px 20px;
       background: rgba(255,255,255,0.2);
       color: white;
@@ -218,6 +220,14 @@ import { Auth } from '@angular/fire/auth';
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     }
     
+    .btn-poker {
+      background: linear-gradient(90deg, #0a3d0a 0%, #1a5f1a 100%);
+      border-color: #FFD700;
+      color: #FFD700;
+      font-weight: 800;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    
     .btn-logout:hover,
     .btn-stats:hover,
     .btn-leaderboard:hover,
@@ -228,6 +238,12 @@ import { Auth } from '@angular/fire/auth';
     .btn-slots:hover {
       background: linear-gradient(90deg, #5a2d94 0%, #8b2d9c 100%);
       box-shadow: 0 0 15px rgba(255, 198, 47, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .btn-poker:hover {
+      background: linear-gradient(90deg, #0d4a0d 0%, #227022 100%);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
       transform: translateY(-2px);
     }
     
@@ -699,7 +715,9 @@ import { Auth } from '@angular/fire/auth';
       .btn-logout,
       .btn-stats,
       .btn-leaderboard,
-      .btn-friends {
+      .btn-friends,
+      .btn-slots,
+      .btn-poker {
         width: 100%;
         padding: 12px;
         text-align: center;
@@ -768,7 +786,9 @@ import { Auth } from '@angular/fire/auth';
       .btn-logout,
       .btn-stats,
       .btn-leaderboard,
-      .btn-friends {
+      .btn-friends,
+      .btn-slots,
+      .btn-poker {
         padding: 10px;
         font-size: 14px;
       }
@@ -939,5 +959,9 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   viewSlots() {
     this.router.navigate(['/slots']);
+  }
+
+  viewVideoPoker() {
+    this.router.navigate(['/video-poker']);
   }
 }
