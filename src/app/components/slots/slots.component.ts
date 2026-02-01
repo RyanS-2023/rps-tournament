@@ -554,6 +554,7 @@ interface WinResult {
       top: 0;
       left: 0;
       width: 100%;
+      will-change: transform;
     }
 
     .symbol {
@@ -797,52 +798,27 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly VISIBLE_SYMBOLS = 3;
   private readonly BET_LEVELS = [1, 2, 5, 10, 20, 50, 100];
   
-  // ENHANCED PAYTABLE - Now includes 2-symbol wins for premium symbols
   private readonly PAYTABLE: {[key: string]: {[key: number]: number}} = {
-    '🏆': { 5: 1000, 4: 250, 3: 50, 2: 10 },   // Trophy - Jackpot symbol
-    '🏈': { 5: 500, 4: 100, 3: 25, 2: 5 },     // Football - High symbol
-    '⚔️': { 5: 300, 4: 75, 3: 20, 2: 4 },      // Sword - High symbol
-    '🛡️': { 5: 200, 4: 50, 3: 15, 2: 3 },      // Shield - Medium symbol
-    '👑': { 5: 150, 4: 40, 3: 10, 2: 2 },      // Crown - Medium symbol
-    '⚡': { 5: 100, 4: 30, 3: 8 },              // Lightning - Low symbol (3+ only)
-    '💜': { 5: 80, 4: 25, 3: 5 },               // Purple heart - Low symbol (3+ only)
-    'V': { 5: 60, 4: 20, 3: 5 }                 // V - Low symbol (3+ only)
+    '🏆': { 5: 1000, 4: 250, 3: 50, 2: 10 },
+    '🏈': { 5: 500, 4: 100, 3: 25, 2: 5 },
+    '⚔️': { 5: 300, 4: 75, 3: 20, 2: 4 },
+    '🛡️': { 5: 200, 4: 50, 3: 15, 2: 3 },
+    '👑': { 5: 150, 4: 40, 3: 10, 2: 2 },
+    '⚡': { 5: 100, 4: 30, 3: 8 },
+    '💜': { 5: 80, 4: 25, 3: 5 },
+    'V': { 5: 60, 4: 20, 3: 5 }
   };
 
-  // 25 Paylines matching the visual display
   private readonly PAYLINES = [
-    // Straight lines (5)
-    [0, 0, 0, 0, 0], // Line 1 - Top
-    [1, 1, 1, 1, 1], // Line 2 - Middle
-    [2, 2, 2, 2, 2], // Line 3 - Bottom
-    [0, 1, 1, 1, 0], // Line 4
-    [2, 1, 1, 1, 2], // Line 5
-    
-    // V and inverted V patterns (4)
-    [0, 1, 2, 1, 0], // Line 6 - V shape
-    [2, 1, 0, 1, 2], // Line 7 - Inverted V
-    [0, 1, 0, 1, 0], // Line 8
-    [2, 1, 2, 1, 2], // Line 9
-    
-    // Zigzag patterns (6)
-    [0, 0, 1, 2, 2], // Line 10
-    [2, 2, 1, 0, 0], // Line 11
-    [1, 0, 1, 2, 1], // Line 12
-    [1, 2, 1, 0, 1], // Line 13
-    [0, 1, 0, 2, 0], // Line 14
-    [2, 1, 2, 0, 2], // Line 15
-    
-    // Diagonal and complex patterns (10)
-    [0, 0, 0, 1, 2], // Line 16
-    [2, 2, 2, 1, 0], // Line 17
-    [1, 0, 0, 0, 1], // Line 18
-    [1, 2, 2, 2, 1], // Line 19
-    [0, 2, 0, 2, 0], // Line 20
-    [2, 0, 2, 0, 2], // Line 21
-    [0, 1, 2, 0, 1], // Line 22
-    [2, 1, 0, 2, 1], // Line 23
-    [1, 0, 1, 0, 1], // Line 24
-    [1, 2, 1, 2, 1]  // Line 25
+    [0, 0, 0, 0, 0], [1, 1, 1, 1, 1], [2, 2, 2, 2, 2],
+    [0, 1, 1, 1, 0], [2, 1, 1, 1, 2], [0, 1, 2, 1, 0],
+    [2, 1, 0, 1, 2], [0, 1, 0, 1, 0], [2, 1, 2, 1, 2],
+    [0, 0, 1, 2, 2], [2, 2, 1, 0, 0], [1, 0, 1, 2, 1],
+    [1, 2, 1, 0, 1], [0, 1, 0, 2, 0], [2, 1, 2, 0, 2],
+    [0, 0, 0, 1, 2], [2, 2, 2, 1, 0], [1, 0, 0, 0, 1],
+    [1, 2, 2, 2, 1], [0, 2, 0, 2, 0], [2, 0, 2, 0, 2],
+    [0, 1, 2, 0, 1], [2, 1, 0, 2, 1], [1, 0, 1, 0, 1],
+    [1, 2, 1, 2, 1]
   ];
 
   balance = 0;
@@ -862,26 +838,39 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   winningLines = new Set<number>();
   currentWins: WinResult[] = [];
 
-  // Initialize reels array with placeholder data so DOM elements render immediately
-  reels: Reel[] = Array(5).fill(null).map((_, index) => ({
-    symbols: this.REEL_STRIPS[index] ? [...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index]] : [],
-    element: null,
-    position: 0
-  }));
+  reels: Reel[] = [];
+  private reelsInitialized = false;
   private userId: string = '';
 
   constructor(
     private router: Router,
     private creditsService: CreditsService,
     private auth: Auth
-  ) {}
+  ) {
+    // Initialize reels array with proper structure
+    this.reels = Array(5).fill(null).map((_, index) => ({
+      symbols: this.REEL_STRIPS[index] ? [...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index]] : [],
+      element: null,
+      position: 0
+    }));
+  }
 
   ngOnInit() {
     this.loadUserCredits();
   }
 
   ngAfterViewInit() {
-    setTimeout(() => this.initReels(), 100);
+    // Give Angular time to render the DOM
+    setTimeout(() => {
+      this.initReels();
+      // Verify initialization after a short delay
+      setTimeout(() => {
+        if (!this.reelsInitialized) {
+          console.warn('Reels not initialized, retrying...');
+          this.initReels();
+        }
+      }, 300);
+    }, 150);
   }
 
   ngOnDestroy() {
@@ -931,41 +920,43 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initReels() {
-    // Update existing reels array instead of creating new one
-    for (let index = 0; index < this.REEL_STRIPS.length; index++) {
-      const strip = this.REEL_STRIPS[index];
+    let allFound = true;
+    
+    for (let index = 0; index < 5; index++) {
       const reelElement = document.getElementById('reel-' + index);
       
       if (!reelElement) {
-        console.error('Reel element not found:', 'reel-' + index);
+        console.error(`Reel element not found: reel-${index}`);
+        allFound = false;
+        continue;
       }
       
-      // Update the existing reel object
-      this.reels[index] = {
-        symbols: [...strip, ...strip, ...strip],
-        element: reelElement,
-        position: 0
-      };
+      // Store the element reference
+      this.reels[index].element = reelElement;
+      this.reels[index].position = 0;
       
-      if (reelElement) {
-        const transform = 'translateY(0px)';
-        reelElement.style.transform = transform;
-        reelElement.style.transition = 'none';
-        reelElement.style.willChange = 'transform';
-        console.log(`Initialized reel ${index} with element, transform:`, transform);
-      } else {
-        console.error('Reel element is null for index:', index);
-      }
+      // Initialize transform
+      reelElement.style.transform = 'translateY(0px)';
+      reelElement.style.transition = 'none';
+      reelElement.style.willChange = 'transform';
+    }
+    
+    this.reelsInitialized = allFound;
+    
+    if (allFound) {
+      console.log('All reels initialized successfully');
+    } else {
+      console.error('Some reels failed to initialize');
     }
   }
 
   spin() {
-    if (this.isSpinning || this.balance < this.currentBet * 25) {
-      console.log('Spin blocked:', { isSpinning: this.isSpinning, balance: this.balance, required: this.currentBet * 25 });
+    if (this.isSpinning || this.balance < this.currentBet * 25 || !this.reelsInitialized) {
+      if (!this.reelsInitialized) {
+        console.error('Cannot spin: reels not initialized');
+      }
       return;
     }
-
-    console.log('Starting spin with', this.reels.length, 'reels');
 
     this.isSpinning = true;
     this.balance -= this.currentBet * 25;
@@ -974,52 +965,63 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.winningLines.clear();
     this.currentWins = [];
 
-    const spinPromises = this.reels.map((reel, index) => {
-      return new Promise<void>(resolve => {
-        const stripLength = this.REEL_STRIPS[index].length;
-        const spins = 3 + index * 0.5;
-        const targetPos = Math.floor(Math.random() * stripLength) + stripLength * spins;
-        const startPos = reel.position;
-        const duration = 2000 + index * 200;
-        const startTime = Date.now();
+    const spinPromises: Promise<void>[] = [];
 
-        console.log(`Reel ${index}: startPos=${startPos}, targetPos=${targetPos}, element=${!!reel.element}`);
+    for (let index = 0; index < 5; index++) {
+      const reel = this.reels[index];
+      const reelElement = reel.element;
+      
+      if (!reelElement) {
+        console.error(`Cannot spin reel ${index}: element not found`);
+        continue;
+      }
+
+      const promise = new Promise<void>(resolve => {
+        // Reset any transition
+        reelElement.style.transition = 'none';
+        
+        const stripLength = this.REEL_STRIPS[index].length;
+        const spins = 3 + (index * 0.5);
+        const randomOffset = Math.floor(Math.random() * stripLength);
+        const targetPos = randomOffset + Math.floor(stripLength * spins);
+        const startPos = reel.position;
+        const duration = 2000 + (index * 200);
+        const startTime = Date.now();
 
         const animate = () => {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
+          
+          // Ease out cubic
           const easeOut = 1 - Math.pow(1 - progress, 3);
           const currentPos = startPos + (targetPos - startPos) * easeOut;
+          const pixels = currentPos * this.SYMBOL_HEIGHT;
           
-          reel.position = currentPos;
-          if (reel.element) {
-            const transformValue = 'translateY(-' + (currentPos * this.SYMBOL_HEIGHT) + 'px)';
-            reel.element.style.transform = transformValue;
-            
-            // Log first frame to verify transform is applied
-            if (elapsed < 100) {
-              console.log(`Reel ${index} transform:`, transformValue, 'computed:', window.getComputedStyle(reel.element).transform);
-            }
-          }
+          reelElement.style.transform = `translateY(-${pixels}px)`;
 
           if (progress < 1) {
             requestAnimationFrame(animate);
           } else {
-            reel.position = targetPos;
-            if (reel.element) {
-              reel.element.style.transform = 'translateY(-' + (targetPos * this.SYMBOL_HEIGHT) + 'px)';
-            }
-            console.log(`Reel ${index} finished`);
+            // Normalize position to prevent overflow
+            const normalizedPos = targetPos % stripLength;
+            reel.position = normalizedPos;
+            
+            // Set final position
+            const finalPixels = normalizedPos * this.SYMBOL_HEIGHT;
+            reelElement.style.transform = `translateY(-${finalPixels}px)`;
+            
             resolve();
           }
         };
 
+        // Stagger the start of each reel
         setTimeout(() => requestAnimationFrame(animate), index * 150);
       });
-    });
+
+      spinPromises.push(promise);
+    }
 
     Promise.all(spinPromises).then(() => {
-      console.log('All reels finished spinning');
       this.checkWin();
       this.isSpinning = false;
     });
@@ -1027,15 +1029,21 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private getVisibleSymbols(): string[][] {
     const grid: string[][] = [];
-    this.reels.forEach((reel, reelIndex) => {
+    
+    for (let reelIndex = 0; reelIndex < 5; reelIndex++) {
+      const reel = this.reels[reelIndex];
       const column: string[] = [];
       const basePos = Math.floor(reel.position);
+      const stripLength = this.REEL_STRIPS[reelIndex].length;
+      
       for (let i = 0; i < this.VISIBLE_SYMBOLS; i++) {
-        const index = (basePos + i) % this.REEL_STRIPS[reelIndex].length;
-        column.push(reel.symbols[index]);
+        const index = (basePos + i) % stripLength;
+        column.push(this.REEL_STRIPS[reelIndex][index]);
       }
+      
       grid.push(column);
-    });
+    }
+    
     return grid;
   }
 
@@ -1085,11 +1093,10 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // ENHANCED WIN DETECTION - Now properly checks for 2+ symbol matches
   private checkLine(symbols: string[]): { payout: number; positions: number[]; symbol: string; count: number } {
     let bestWin = { payout: 0, positions: [] as number[], symbol: '', count: 0 };
 
-    // Check each unique symbol
+    // Check each symbol type
     for (const symbol of this.SYMBOLS) {
       let count = 0;
       
@@ -1098,7 +1105,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
         if (symbols[i] === symbol) {
           count++;
         } else {
-          break; // Stop at first non-match (left-to-right rule)
+          break;
         }
       }
 
@@ -1106,7 +1113,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
       if (count >= 2 && this.PAYTABLE[symbol]?.[count]) {
         const payout = this.PAYTABLE[symbol][count] * this.currentBet;
         
-        // Keep the highest paying win for this line
         if (payout > bestWin.payout) {
           bestWin = {
             payout,
