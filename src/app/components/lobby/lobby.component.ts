@@ -187,14 +187,12 @@ import { Auth } from '@angular/fire/auth';
       gap: 10px;
       color: white;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
     
     .user-info > span {
       word-wrap: break-word;
       overflow-wrap: break-word;
       max-width: 200px;
-      margin-right: auto;
     }
     
     .btn-logout,
@@ -613,28 +611,27 @@ import { Auth } from '@angular/fire/auth';
     }
     
     @media (max-width: 768px) {
-  .game-card {
-    grid-template-columns: auto 1fr;
-    grid-template-rows: auto auto;
-    gap: 15px;
-  }
-  
-  .btn-end-game {
-    grid-row: 1;
-    grid-column: 1;
-  }
-  
-  .game-info {
-    grid-row: 1;
-    grid-column: 2;
-  }
-  
-  .btn-resume {
-    grid-row: 2;
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-}
+      .game-card {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 15px;
+      }
+      
+      .btn-end-game {
+        grid-row: 1;
+        grid-column: 1;
+      }
+      
+      .game-info {
+        grid-row: 1;
+        grid-column: 2;
+      }
+      
+      .btn-resume {
+        grid-row: 2;
+        grid-column: 1 / -1;
+        width: 100%;
+      }
       
       header {
         flex-direction: column;
