@@ -18,6 +18,14 @@ interface WinResult {
   positions: number[];
 }
 
+interface SpinResult {
+  serverSeed: string;
+  clientSeed: string;
+  nonce: number;
+  hash: string;
+  positions: number[];
+}
+
 @Component({
   selector: 'app-slots',
   standalone: true,
@@ -39,100 +47,165 @@ interface WinResult {
         </div>
       </div>
 
+      <!-- Paytable Modal -->
       <div class="paytable-modal" *ngIf="showPaytable" (click)="showPaytable = false">
         <div class="paytable-content" (click)="$event.stopPropagation()">
-          <h2>💰 PAYTABLE 💰</h2>
+          <h2>💰 PAYTABLE & RULES 💰</h2>
           
+          <!-- Symbol Payouts Section -->
           <div class="paytable-section">
-            <h3>Symbol Payouts</h3>
-            <p class="bet-note">Payouts shown for <strong>{{ currentBet }} credit</strong> bet per line</p>
-            <div class="payout-grid">
-              <div class="payout-row jackpot">
-                <span class="symbol">🏆</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('🏆', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('🏆', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('🏆', 3) }}</strong></span>
-                  <span>2 = <strong>{{ calculatePayout('🏆', 2) }}</strong></span>
+            <h3>🎰 Symbol Payouts</h3>
+            <p class="bet-note">All payouts shown for <strong>1 credit</strong> bet per line. Multiply by your bet amount.</p>
+            
+            <div class="symbols-grid">
+              <div class="symbol-card jackpot">
+                <div class="symbol-icon">🏆</div>
+                <div class="symbol-name">TROPHY</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>2000</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>400</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>80</strong></div>
+                  <div class="pay-line"><span class="count">2×</span> = <strong>10</strong></div>
                 </div>
               </div>
-              <div class="payout-row high">
-                <span class="symbol">🏈</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('🏈', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('🏈', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('🏈', 3) }}</strong></span>
-                  <span>2 = <strong>{{ calculatePayout('🏈', 2) }}</strong></span>
+
+              <div class="symbol-card high">
+                <div class="symbol-icon">🏈</div>
+                <div class="symbol-name">FOOTBALL</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>1000</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>200</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>50</strong></div>
+                  <div class="pay-line"><span class="count">2×</span> = <strong>5</strong></div>
                 </div>
               </div>
-              <div class="payout-row high">
-                <span class="symbol">⚔️</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('⚔️', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('⚔️', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('⚔️', 3) }}</strong></span>
-                  <span>2 = <strong>{{ calculatePayout('⚔️', 2) }}</strong></span>
+
+              <div class="symbol-card high">
+                <div class="symbol-icon">⚔️</div>
+                <div class="symbol-name">SWORD</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>600</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>150</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>40</strong></div>
+                  <div class="pay-line"><span class="count">2×</span> = <strong>4</strong></div>
                 </div>
               </div>
-              <div class="payout-row medium">
-                <span class="symbol">🛡️</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('🛡️', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('🛡️', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('🛡️', 3) }}</strong></span>
-                  <span>2 = <strong>{{ calculatePayout('🛡️', 2) }}</strong></span>
+
+              <div class="symbol-card medium">
+                <div class="symbol-icon">🛡️</div>
+                <div class="symbol-name">SHIELD</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>400</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>100</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>25</strong></div>
+                  <div class="pay-line"><span class="count">2×</span> = <strong>3</strong></div>
                 </div>
               </div>
-              <div class="payout-row medium">
-                <span class="symbol">👑</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('👑', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('👑', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('👑', 3) }}</strong></span>
-                  <span>2 = <strong>{{ calculatePayout('👑', 2) }}</strong></span>
+
+              <div class="symbol-card medium">
+                <div class="symbol-icon">👑</div>
+                <div class="symbol-name">CROWN</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>300</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>80</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>20</strong></div>
+                  <div class="pay-line"><span class="count">2×</span> = <strong>2</strong></div>
                 </div>
               </div>
-              <div class="payout-row low">
-                <span class="symbol">⚡</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('⚡', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('⚡', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('⚡', 3) }}</strong></span>
+
+              <div class="symbol-card low">
+                <div class="symbol-icon">⚡</div>
+                <div class="symbol-name">LIGHTNING</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>200</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>50</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>15</strong></div>
                 </div>
               </div>
-              <div class="payout-row low">
-                <span class="symbol">💜</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('💜', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('💜', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('💜', 3) }}</strong></span>
+
+              <div class="symbol-card low">
+                <div class="symbol-icon">💜</div>
+                <div class="symbol-name">HEART</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>150</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>40</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>10</strong></div>
                 </div>
               </div>
-              <div class="payout-row low">
-                <span class="symbol">V</span>
-                <div class="payout-values">
-                  <span>5 = <strong>{{ calculatePayout('V', 5) }}</strong></span>
-                  <span>4 = <strong>{{ calculatePayout('V', 4) }}</strong></span>
-                  <span>3 = <strong>{{ calculatePayout('V', 3) }}</strong></span>
+
+              <div class="symbol-card low">
+                <div class="symbol-icon">V</div>
+                <div class="symbol-name">VIKINGS V</div>
+                <div class="symbol-pays">
+                  <div class="pay-line"><span class="count">5×</span> = <strong>100</strong></div>
+                  <div class="pay-line"><span class="count">4×</span> = <strong>30</strong></div>
+                  <div class="pay-line"><span class="count">3×</span> = <strong>8</strong></div>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Paylines Visualization -->
           <div class="paytable-section">
-            <h3>📊 25 Paylines</h3>
-            <p class="lines-desc">Wins pay from left to right on active paylines</p>
-            <p class="lines-desc">All 25 lines active every spin</p>
-            <p class="lines-desc">Multiple winning lines award multiple payouts</p>
-            <p class="lines-desc highlight">Higher value symbols pay on 2+ matches</p>
-            <p class="lines-desc highlight">Lower value symbols pay on 3+ matches</p>
+            <h3>📊 25 Paylines Visualization</h3>
+            <p class="paylines-info">Click on a payline to see how it works across the reels</p>
+            
+            <div class="paylines-grid">
+              <div class="payline-visual" *ngFor="let line of PAYLINES; let i = index" 
+                   (click)="highlightPayline(i)"
+                   [class.active]="highlightedPayline === i">
+                <div class="line-number">Line {{ i + 1 }}</div>
+                <div class="mini-grid">
+                  <div class="mini-reel" *ngFor="let pos of [0,1,2,3,4]">
+                    <div class="mini-cell" [class.active]="line[pos] === 0"></div>
+                    <div class="mini-cell" [class.active]="line[pos] === 1"></div>
+                    <div class="mini-cell" [class.active]="line[pos] === 2"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
+          <!-- Rules Section -->
           <div class="paytable-section">
-            <h3>💎 Daily Credits</h3>
+            <h3>📜 Game Rules</h3>
+            <ul class="rules-list">
+              <li>All 25 paylines are active on every spin</li>
+              <li>Wins pay left to right on consecutive reels</li>
+              <li>Premium symbols (🏆🏈⚔️🛡️👑) pay on 2+ matches</li>
+              <li>Standard symbols (⚡💜V) pay on 3+ matches</li>
+              <li>Multiple winning lines pay out separately</li>
+              <li>Maximum payout per spin: 50,000 credits</li>
+            </ul>
+          </div>
+
+          <!-- Provably Fair Section -->
+          <div class="paytable-section provably-fair">
+            <h3>🔐 Provably Fair Gaming</h3>
+            <p class="fair-desc">Every spin is verifiable using cryptographic hashing</p>
+            <div class="fair-info">
+              <div class="fair-item">
+                <strong>Client Seed:</strong>
+                <code>{{ clientSeed }}</code>
+                <button (click)="regenerateClientSeed()" class="btn-regenerate">New Seed</button>
+              </div>
+              <div class="fair-item">
+                <strong>Nonce:</strong> {{ spinNonce }}
+              </div>
+              <div class="fair-item">
+                <strong>Last Spin Hash:</strong>
+                <code class="hash">{{ lastSpinHash || 'Spin to generate' }}</code>
+              </div>
+            </div>
+            <p class="fair-note">Each spin combines server seed + client seed + nonce to generate verifiable random results</p>
+          </div>
+
+          <!-- Daily Credits -->
+          <div class="paytable-section">
+            <h3>💎 Daily Bonus</h3>
             <ul class="rules-list">
               <li>Receive 1,000 free credits every day</li>
-              <li>Credits automatically added on first login each day</li>
+              <li>Credits automatically added on first login</li>
               <li>Maximum balance: 50,000 credits</li>
               <li>Next daily bonus: {{ timeUntilNextCredit }}</li>
             </ul>
@@ -159,35 +232,38 @@ interface WinResult {
 
           <div id="header">
             <div id="logo">⚔️ VIKINGS SLOTS ⚔️</div>
+            <div id="fairness-badge" (click)="showPaytable = true; scrollToFairness()">
+              🔐 Provably Fair
+            </div>
           </div>
 
           <div id="reelsContainer">
             <svg class="paylines-svg" viewBox="0 0 540 315" preserveAspectRatio="none">
-              <line x1="0" y1="52.5" x2="540" y2="52.5" [attr.opacity]="winningLines.has(0) ? '1' : '0.15'" stroke="#FFD700" stroke-width="2"/>
-              <line x1="0" y1="105" x2="540" y2="105" [attr.opacity]="winningLines.has(1) ? '1' : '0.15'" stroke="#FF6B6B" stroke-width="2"/>
-              <line x1="0" y1="157.5" x2="540" y2="157.5" [attr.opacity]="winningLines.has(2) ? '1' : '0.15'" stroke="#4ECDC4" stroke-width="2"/>
-              <line x1="0" y1="210" x2="540" y2="210" [attr.opacity]="winningLines.has(3) ? '1' : '0.15'" stroke="#95E1D3" stroke-width="2"/>
-              <line x1="0" y1="262.5" x2="540" y2="262.5" [attr.opacity]="winningLines.has(4) ? '1' : '0.15'" stroke="#F38181" stroke-width="2"/>
-              <polyline points="0,52.5 135,157.5 270,262.5 405,157.5 540,52.5" [attr.opacity]="winningLines.has(5) ? '1' : '0.15'" stroke="#AA96DA" stroke-width="2" fill="none"/>
-              <polyline points="0,262.5 135,157.5 270,52.5 405,157.5 540,262.5" [attr.opacity]="winningLines.has(6) ? '1' : '0.15'" stroke="#FCBAD3" stroke-width="2" fill="none"/>
-              <polyline points="0,105 135,157.5 270,210 405,157.5 540,105" [attr.opacity]="winningLines.has(7) ? '1' : '0.15'" stroke="#FFFFD2" stroke-width="2" fill="none"/>
-              <polyline points="0,210 135,157.5 270,105 405,157.5 540,210" [attr.opacity]="winningLines.has(8) ? '1' : '0.15'" stroke="#A8D8EA" stroke-width="2" fill="none"/>
-              <polyline points="0,52.5 108,157.5 216,52.5 324,157.5 432,52.5 540,157.5" [attr.opacity]="winningLines.has(9) ? '1' : '0.15'" stroke="#FF6B9D" stroke-width="2" fill="none"/>
-              <polyline points="0,262.5 108,157.5 216,262.5 324,157.5 432,262.5 540,157.5" [attr.opacity]="winningLines.has(10) ? '1' : '0.15'" stroke="#C44569" stroke-width="2" fill="none"/>
-              <polyline points="0,157.5 108,52.5 216,157.5 324,262.5 432,157.5 540,52.5" [attr.opacity]="winningLines.has(11) ? '1' : '0.15'" stroke="#F8B500" stroke-width="2" fill="none"/>
-              <polyline points="0,157.5 108,262.5 216,157.5 324,52.5 432,157.5 540,262.5" [attr.opacity]="winningLines.has(12) ? '1' : '0.15'" stroke="#6BCB77" stroke-width="2" fill="none"/>
-              <polyline points="0,52.5 135,105 270,157.5 405,210 540,262.5" [attr.opacity]="winningLines.has(13) ? '1' : '0.15'" stroke="#4D96FF" stroke-width="2" fill="none"/>
-              <polyline points="0,262.5 135,210 270,157.5 405,105 540,52.5" [attr.opacity]="winningLines.has(14) ? '1' : '0.15'" stroke="#FFB6B9" stroke-width="2" fill="none"/>
-              <polyline points="0,105 135,52.5 270,105 405,157.5 540,210" [attr.opacity]="winningLines.has(15) ? '1' : '0.15'" stroke="#BAE8E8" stroke-width="2" fill="none"/>
-              <polyline points="0,210 135,262.5 270,210 405,157.5 540,105" [attr.opacity]="winningLines.has(16) ? '1' : '0.15'" stroke="#FFEAA7" stroke-width="2" fill="none"/>
-              <polyline points="0,157.5 135,105 270,52.5 405,105 540,157.5" [attr.opacity]="winningLines.has(17) ? '1' : '0.15'" stroke="#DDA15E" stroke-width="2" fill="none"/>
-              <polyline points="0,157.5 135,210 270,262.5 405,210 540,157.5" [attr.opacity]="winningLines.has(18) ? '1' : '0.15'" stroke="#BC6C25" stroke-width="2" fill="none"/>
-              <polyline points="0,52.5 135,210 270,52.5 405,210 540,52.5" [attr.opacity]="winningLines.has(19) ? '1' : '0.15'" stroke="#E07A5F" stroke-width="2" fill="none"/>
-              <polyline points="0,262.5 135,105 270,262.5 405,105 540,262.5" [attr.opacity]="winningLines.has(20) ? '1' : '0.15'" stroke="#81B29A" stroke-width="2" fill="none"/>
-              <polyline points="0,105 135,210 270,105 405,210 540,105" [attr.opacity]="winningLines.has(21) ? '1' : '0.15'" stroke="#F2CC8F" stroke-width="2" fill="none"/>
-              <polyline points="0,210 135,105 270,210 405,105 540,210" [attr.opacity]="winningLines.has(22) ? '1' : '0.15'" stroke="#3D5A80" stroke-width="2" fill="none"/>
-              <polyline points="0,157.5 135,52.5 270,157.5 405,262.5 540,157.5" [attr.opacity]="winningLines.has(23) ? '1' : '0.15'" stroke="#EE6C4D" stroke-width="2" fill="none"/>
-              <polyline points="0,157.5 135,262.5 270,157.5 405,52.5 540,157.5" [attr.opacity]="winningLines.has(24) ? '1' : '0.15'" stroke="#98C1D9" stroke-width="2" fill="none"/>
+              <line x1="0" y1="52.5" x2="540" y2="52.5" [attr.opacity]="winningLines.has(0) ? '1' : '0.2'" stroke="#FFD700" stroke-width="3"/>
+              <line x1="0" y1="157.5" x2="540" y2="157.5" [attr.opacity]="winningLines.has(1) ? '1' : '0.2'" stroke="#FF6B6B" stroke-width="3"/>
+              <line x1="0" y1="262.5" x2="540" y2="262.5" [attr.opacity]="winningLines.has(2) ? '1' : '0.2'" stroke="#4ECDC4" stroke-width="3"/>
+              <line x1="0" y1="105" x2="540" y2="105" [attr.opacity]="winningLines.has(3) ? '1' : '0.2'" stroke="#95E1D3" stroke-width="3"/>
+              <line x1="0" y1="210" x2="540" y2="210" [attr.opacity]="winningLines.has(4) ? '1' : '0.2'" stroke="#F38181" stroke-width="3"/>
+              <polyline points="0,52.5 135,157.5 270,262.5 405,157.5 540,52.5" [attr.opacity]="winningLines.has(5) ? '1' : '0.2'" stroke="#AA96DA" stroke-width="3" fill="none"/>
+              <polyline points="0,262.5 135,157.5 270,52.5 405,157.5 540,262.5" [attr.opacity]="winningLines.has(6) ? '1' : '0.2'" stroke="#FCBAD3" stroke-width="3" fill="none"/>
+              <polyline points="0,105 135,157.5 270,210 405,157.5 540,105" [attr.opacity]="winningLines.has(7) ? '1' : '0.2'" stroke="#FFFFD2" stroke-width="3" fill="none"/>
+              <polyline points="0,210 135,157.5 270,105 405,157.5 540,210" [attr.opacity]="winningLines.has(8) ? '1' : '0.2'" stroke="#A8D8EA" stroke-width="3" fill="none"/>
+              <polyline points="0,52.5 108,157.5 216,52.5 324,157.5 432,52.5 540,157.5" [attr.opacity]="winningLines.has(9) ? '1' : '0.2'" stroke="#FF6B9D" stroke-width="3" fill="none"/>
+              <polyline points="0,262.5 108,157.5 216,262.5 324,157.5 432,262.5 540,157.5" [attr.opacity]="winningLines.has(10) ? '1' : '0.2'" stroke="#C44569" stroke-width="3" fill="none"/>
+              <polyline points="0,157.5 108,52.5 216,157.5 324,262.5 432,157.5 540,52.5" [attr.opacity]="winningLines.has(11) ? '1' : '0.2'" stroke="#F8B500" stroke-width="3" fill="none"/>
+              <polyline points="0,157.5 108,262.5 216,157.5 324,52.5 432,157.5 540,262.5" [attr.opacity]="winningLines.has(12) ? '1' : '0.2'" stroke="#6BCB77" stroke-width="3" fill="none"/>
+              <polyline points="0,52.5 135,105 270,157.5 405,210 540,262.5" [attr.opacity]="winningLines.has(13) ? '1' : '0.2'" stroke="#4D96FF" stroke-width="3" fill="none"/>
+              <polyline points="0,262.5 135,210 270,157.5 405,105 540,52.5" [attr.opacity]="winningLines.has(14) ? '1' : '0.2'" stroke="#FFB6B9" stroke-width="3" fill="none"/>
+              <polyline points="0,105 135,52.5 270,105 405,157.5 540,210" [attr.opacity]="winningLines.has(15) ? '1' : '0.2'" stroke="#BAE8E8" stroke-width="3" fill="none"/>
+              <polyline points="0,210 135,262.5 270,210 405,157.5 540,105" [attr.opacity]="winningLines.has(16) ? '1' : '0.2'" stroke="#FFEAA7" stroke-width="3" fill="none"/>
+              <polyline points="0,157.5 135,105 270,52.5 405,105 540,157.5" [attr.opacity]="winningLines.has(17) ? '1' : '0.2'" stroke="#DDA15E" stroke-width="3" fill="none"/>
+              <polyline points="0,157.5 135,210 270,262.5 405,210 540,157.5" [attr.opacity]="winningLines.has(18) ? '1' : '0.2'" stroke="#BC6C25" stroke-width="3" fill="none"/>
+              <polyline points="0,52.5 135,210 270,52.5 405,210 540,52.5" [attr.opacity]="winningLines.has(19) ? '1' : '0.2'" stroke="#E07A5F" stroke-width="3" fill="none"/>
+              <polyline points="0,262.5 135,105 270,262.5 405,105 540,262.5" [attr.opacity]="winningLines.has(20) ? '1' : '0.2'" stroke="#81B29A" stroke-width="3" fill="none"/>
+              <polyline points="0,105 135,210 270,105 405,210 540,105" [attr.opacity]="winningLines.has(21) ? '1' : '0.2'" stroke="#F2CC8F" stroke-width="3" fill="none"/>
+              <polyline points="0,210 135,105 270,210 405,105 540,210" [attr.opacity]="winningLines.has(22) ? '1' : '0.2'" stroke="#3D5A80" stroke-width="3" fill="none"/>
+              <polyline points="0,157.5 135,52.5 270,157.5 405,262.5 540,157.5" [attr.opacity]="winningLines.has(23) ? '1' : '0.2'" stroke="#EE6C4D" stroke-width="3" fill="none"/>
+              <polyline points="0,157.5 135,262.5 270,157.5 405,52.5 540,157.5" [attr.opacity]="winningLines.has(24) ? '1' : '0.2'" stroke="#98C1D9" stroke-width="3" fill="none"/>
             </svg>
 
             <div id="reels">
@@ -281,20 +357,6 @@ interface WinResult {
       font-weight: normal !important;
     }
 
-    .bet-note {
-      background: rgba(255, 198, 47, 0.1);
-      padding: 10px;
-      border-radius: 6px;
-      border-left: 3px solid #FFC62F;
-      margin: 10px 0 15px;
-      font-size: 14px;
-      color: #FFC62F;
-    }
-
-    .bet-note strong {
-      color: #fff;
-    }
-
     .slots-page {
       min-height: 100vh;
       background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
@@ -357,7 +419,7 @@ interface WinResult {
       border: 4px solid #FFC62F;
       border-radius: 15px;
       padding: 30px;
-      max-width: 650px;
+      max-width: 900px;
       width: 100%;
       max-height: 90vh;
       overflow-y: auto;
@@ -368,97 +430,264 @@ interface WinResult {
     .paytable-content h2 {
       color: #FFC62F;
       text-align: center;
-      margin-bottom: 25px;
-      font-size: 32px;
+      margin-bottom: 30px;
+      font-size: 36px;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
     .paytable-content h3 {
       color: #FFC62F;
-      margin: 25px 0 15px;
-      font-size: 22px;
-      border-bottom: 2px solid #4F2683;
-      padding-bottom: 8px;
+      margin: 30px 0 20px;
+      font-size: 24px;
+      border-bottom: 3px solid #4F2683;
+      padding-bottom: 10px;
     }
 
     .paytable-section {
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
 
-    .payout-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .payout-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 15px;
-      background: rgba(79, 38, 131, 0.3);
+    .bet-note {
+      background: rgba(255, 198, 47, 0.15);
+      padding: 12px;
       border-radius: 8px;
-      border-left: 4px solid #999;
-    }
-
-    .payout-row.jackpot {
-      border-left-color: #FFD700;
-      background: rgba(255, 215, 0, 0.1);
-    }
-
-    .payout-row.high {
-      border-left-color: #FF6B6B;
-    }
-
-    .payout-row.medium {
-      border-left-color: #4ECDC4;
-    }
-
-    .payout-row.low {
-      border-left-color: #95E1D3;
-    }
-
-    .payout-row .symbol {
-      font-size: 36px;
-      width: 60px;
+      border-left: 4px solid #FFC62F;
+      margin: 15px 0 20px;
+      font-size: 15px;
+      color: #FFC62F;
       text-align: center;
     }
 
-    .payout-values {
-      display: flex;
-      gap: 12px;
-      font-size: 13px;
-      flex-wrap: wrap;
+    .bet-note strong {
+      color: #fff;
+      font-size: 18px;
     }
 
-    .payout-values strong {
-      color: #FFC62F;
+    /* Symbol Cards Grid */
+    .symbols-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
     }
 
-    .lines-desc {
-      color: #bbb;
-      font-size: 14px;
+    .symbol-card {
+      background: rgba(79, 38, 131, 0.4);
+      border-radius: 12px;
+      padding: 15px;
+      border: 3px solid #666;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .symbol-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .symbol-card.jackpot {
+      border-color: #FFD700;
+      background: rgba(255, 215, 0, 0.15);
+    }
+
+    .symbol-card.high {
+      border-color: #FF6B6B;
+    }
+
+    .symbol-card.medium {
+      border-color: #4ECDC4;
+    }
+
+    .symbol-card.low {
+      border-color: #95E1D3;
+    }
+
+    .symbol-icon {
+      font-size: 48px;
       margin-bottom: 10px;
     }
 
-    .lines-desc.highlight {
+    .symbol-name {
+      font-size: 12px;
       color: #FFC62F;
       font-weight: bold;
-      background: rgba(255, 198, 47, 0.1);
-      padding: 8px 12px;
-      border-radius: 6px;
-      border-left: 3px solid #FFC62F;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
+    .symbol-pays {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pay-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+    }
+
+    .pay-line .count {
+      color: #bbb;
+      font-weight: bold;
+    }
+
+    .pay-line strong {
+      color: #4CAF50;
+      font-size: 14px;
+    }
+
+    /* Paylines Visualization */
+    .paylines-info {
+      color: #bbb;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .paylines-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .payline-visual {
+      background: rgba(79, 38, 131, 0.3);
+      border: 2px solid #4F2683;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .payline-visual:hover, .payline-visual.active {
+      border-color: #FFC62F;
+      background: rgba(255, 198, 47, 0.2);
+      transform: scale(1.05);
+    }
+
+    .line-number {
+      font-size: 12px;
+      font-weight: bold;
+      color: #FFC62F;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .mini-grid {
+      display: flex;
+      gap: 3px;
+      justify-content: center;
+    }
+
+    .mini-reel {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mini-cell {
+      width: 18px;
+      height: 18px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid #666;
+      border-radius: 3px;
+    }
+
+    .mini-cell.active {
+      background: #FFC62F;
+      border-color: #FFC62F;
+      box-shadow: 0 0 8px #FFC62F;
+    }
+
+    /* Rules List */
     .rules-list {
       padding-left: 20px;
       color: #ccc;
-      font-size: 14px;
-      line-height: 1.8;
+      font-size: 15px;
+      line-height: 2;
     }
 
     .rules-list li {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      padding-left: 10px;
+    }
+
+    /* Provably Fair Section */
+    .provably-fair {
+      background: rgba(79, 38, 131, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+      border: 2px solid #4F2683;
+    }
+
+    .fair-desc {
+      color: #bbb;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .fair-info {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .fair-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fair-item strong {
+      color: #FFC62F;
+      font-size: 14px;
+    }
+
+    .fair-item code {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #4CAF50;
+      word-break: break-all;
+    }
+
+    .fair-item code.hash {
+      font-size: 10px;
+    }
+
+    .btn-regenerate {
+      background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
+      color: #FFC62F;
+      border: 2px solid #FFC62F;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: fit-content;
+    }
+
+    .btn-regenerate:hover {
+      background: linear-gradient(180deg, #5a2d94 0%, #4F2683 100%);
+      box-shadow: 0 0 10px rgba(255, 198, 47, 0.5);
+    }
+
+    .fair-note {
+      color: #999;
+      font-size: 12px;
+      margin-top: 15px;
+      text-align: center;
+      font-style: italic;
     }
 
     .btn-close {
@@ -466,12 +695,12 @@ interface WinResult {
       background: linear-gradient(180deg, #4F2683 0%, #3a1c61 100%);
       color: #FFC62F;
       border: 2px solid #FFC62F;
-      padding: 12px;
-      font-size: 16px;
+      padding: 15px;
+      font-size: 18px;
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 30px;
       transition: all 0.2s;
     }
 
@@ -500,6 +729,7 @@ interface WinResult {
     #header {
       text-align: center;
       margin-bottom: 15px;
+      position: relative;
     }
 
     #logo {
@@ -508,6 +738,26 @@ interface WinResult {
       font-weight: bold;
       text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
       letter-spacing: 3px;
+    }
+
+    #fairness-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(76, 175, 80, 0.2);
+      border: 2px solid #4CAF50;
+      color: #4CAF50;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #fairness-badge:hover {
+      background: rgba(76, 175, 80, 0.3);
+      box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
     }
 
     #reelsContainer {
@@ -781,6 +1031,22 @@ interface WinResult {
       border-radius: 6px;
       border-left: 3px solid #4CAF50;
     }
+
+    @media (max-width: 768px) {
+      .symbols-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .paylines-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+
+      #fairness-badge {
+        position: static;
+        margin-top: 10px;
+        display: inline-block;
+      }
+    }
   `]
 })
 export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -798,18 +1064,19 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly VISIBLE_SYMBOLS = 3;
   private readonly BET_LEVELS = [1, 2, 5, 10, 20, 50, 100];
   
+  // IMPROVED PAYTABLE - Doubled all payouts for better rewards
   private readonly PAYTABLE: {[key: string]: {[key: number]: number}} = {
-    '🏆': { 5: 1000, 4: 250, 3: 50, 2: 10 },
-    '🏈': { 5: 500, 4: 100, 3: 25, 2: 5 },
-    '⚔️': { 5: 300, 4: 75, 3: 20, 2: 4 },
-    '🛡️': { 5: 200, 4: 50, 3: 15, 2: 3 },
-    '👑': { 5: 150, 4: 40, 3: 10, 2: 2 },
-    '⚡': { 5: 100, 4: 30, 3: 8 },
-    '💜': { 5: 80, 4: 25, 3: 5 },
-    'V': { 5: 60, 4: 20, 3: 5 }
+    '🏆': { 5: 2000, 4: 400, 3: 80, 2: 10 },
+    '🏈': { 5: 1000, 4: 200, 3: 50, 2: 5 },
+    '⚔️': { 5: 600, 4: 150, 3: 40, 2: 4 },
+    '🛡️': { 5: 400, 4: 100, 3: 25, 2: 3 },
+    '👑': { 5: 300, 4: 80, 3: 20, 2: 2 },
+    '⚡': { 5: 200, 4: 50, 3: 15 },
+    '💜': { 5: 150, 4: 40, 3: 10 },
+    'V': { 5: 100, 4: 30, 3: 8 }
   };
 
-  private readonly PAYLINES = [
+  readonly PAYLINES = [
     [0, 0, 0, 0, 0], [1, 1, 1, 1, 1], [2, 2, 2, 2, 2],
     [0, 1, 1, 1, 0], [2, 1, 1, 1, 2], [0, 1, 2, 1, 0],
     [2, 1, 0, 1, 2], [0, 1, 0, 1, 0], [2, 1, 2, 1, 2],
@@ -837,6 +1104,13 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   winningReels = new Set<number>();
   winningLines = new Set<number>();
   currentWins: WinResult[] = [];
+  highlightedPayline: number | null = null;
+
+  // Provably Fair System
+  clientSeed: string = '';
+  serverSeed: string = '';
+  spinNonce: number = 0;
+  lastSpinHash: string = '';
 
   reels: Reel[] = [];
   private reelsInitialized = false;
@@ -847,12 +1121,15 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     private creditsService: CreditsService,
     private auth: Auth
   ) {
-    // Initialize reels array with proper structure
     this.reels = Array(5).fill(null).map((_, index) => ({
       symbols: this.REEL_STRIPS[index] ? [...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index], ...this.REEL_STRIPS[index]] : [],
       element: null,
       position: 0
     }));
+
+    // Initialize provably fair seeds
+    this.clientSeed = this.generateRandomSeed();
+    this.serverSeed = this.generateRandomSeed();
   }
 
   ngOnInit() {
@@ -860,10 +1137,8 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Give Angular time to render the DOM
     setTimeout(() => {
       this.initReels();
-      // Verify initialization after a short delay
       setTimeout(() => {
         if (!this.reelsInitialized) {
           console.warn('Reels not initialized, retrying...');
@@ -919,6 +1194,56 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  highlightPayline(index: number) {
+    this.highlightedPayline = this.highlightedPayline === index ? null : index;
+  }
+
+  scrollToFairness() {
+    setTimeout(() => {
+      const fairSection = document.querySelector('.provably-fair');
+      if (fairSection) {
+        fairSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }
+
+  // Provably Fair Functions
+  private generateRandomSeed(): string {
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  regenerateClientSeed() {
+    this.clientSeed = this.generateRandomSeed();
+    this.spinNonce = 0;
+  }
+
+  private async generateHash(data: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  private async generateProvablyFairResult(): Promise<number[]> {
+    this.spinNonce++;
+    const combinedSeed = `${this.serverSeed}:${this.clientSeed}:${this.spinNonce}`;
+    this.lastSpinHash = await this.generateHash(combinedSeed);
+    
+    // Use hash to generate 5 deterministic reel positions
+    const positions: number[] = [];
+    for (let i = 0; i < 5; i++) {
+      const hashSegment = this.lastSpinHash.substring(i * 12, (i + 1) * 12);
+      const numericValue = parseInt(hashSegment, 16);
+      const position = numericValue % this.REEL_STRIPS[i].length;
+      positions.push(position);
+    }
+    
+    return positions;
+  }
+
   private initReels() {
     let allFound = true;
     
@@ -931,11 +1256,9 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
         continue;
       }
       
-      // Store the element reference
       this.reels[index].element = reelElement;
       this.reels[index].position = 0;
       
-      // Initialize transform
       reelElement.style.transform = 'translateY(0px)';
       reelElement.style.transition = 'none';
       reelElement.style.willChange = 'transform';
@@ -950,7 +1273,7 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  spin() {
+  async spin() {
     if (this.isSpinning || this.balance < this.currentBet * 25 || !this.reelsInitialized) {
       if (!this.reelsInitialized) {
         console.error('Cannot spin: reels not initialized');
@@ -965,6 +1288,9 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.winningLines.clear();
     this.currentWins = [];
 
+    // Generate provably fair results
+    const targetPositions = await this.generateProvablyFairResult();
+
     const spinPromises: Promise<void>[] = [];
 
     for (let index = 0; index < 5; index++) {
@@ -977,13 +1303,11 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       const promise = new Promise<void>(resolve => {
-        // Reset any transition
         reelElement.style.transition = 'none';
         
         const stripLength = this.REEL_STRIPS[index].length;
         const spins = 3 + (index * 0.5);
-        const randomOffset = Math.floor(Math.random() * stripLength);
-        const targetPos = randomOffset + Math.floor(stripLength * spins);
+        const targetPos = targetPositions[index] + Math.floor(stripLength * spins);
         const startPos = reel.position;
         const duration = 2000 + (index * 200);
         const startTime = Date.now();
@@ -992,7 +1316,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
           
-          // Ease out cubic
           const easeOut = 1 - Math.pow(1 - progress, 3);
           const currentPos = startPos + (targetPos - startPos) * easeOut;
           const pixels = currentPos * this.SYMBOL_HEIGHT;
@@ -1002,11 +1325,9 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
           if (progress < 1) {
             requestAnimationFrame(animate);
           } else {
-            // Normalize position to prevent overflow
             const normalizedPos = targetPos % stripLength;
             reel.position = normalizedPos;
             
-            // Set final position
             const finalPixels = normalizedPos * this.SYMBOL_HEIGHT;
             reelElement.style.transform = `translateY(-${finalPixels}px)`;
             
@@ -1014,7 +1335,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
           }
         };
 
-        // Stagger the start of each reel
         setTimeout(() => requestAnimationFrame(animate), index * 150);
       });
 
@@ -1054,7 +1374,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     const winningLinesSet = new Set<number>();
     const wins: WinResult[] = [];
 
-    // Check each payline
     this.PAYLINES.forEach((payline, lineIndex) => {
       const lineSymbols = payline.map((row, col) => grid[col][row]);
       const lineWin = this.checkLine(lineSymbols);
@@ -1096,11 +1415,9 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
   private checkLine(symbols: string[]): { payout: number; positions: number[]; symbol: string; count: number } {
     let bestWin = { payout: 0, positions: [] as number[], symbol: '', count: 0 };
 
-    // Check each symbol type
     for (const symbol of this.SYMBOLS) {
       let count = 0;
       
-      // Count consecutive matches from left to right
       for (let i = 0; i < symbols.length; i++) {
         if (symbols[i] === symbol) {
           count++;
@@ -1109,7 +1426,6 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-      // Check if this symbol has a payout for this count
       if (count >= 2 && this.PAYTABLE[symbol]?.[count]) {
         const payout = this.PAYTABLE[symbol][count] * this.currentBet;
         
@@ -1131,7 +1447,9 @@ export class SlotsComponent implements OnInit, AfterViewInit, OnDestroy {
     const totalBet = this.currentBet * 25;
     const multiplier = amount / totalBet;
 
-    if (multiplier >= 50) {
+    if (multiplier >= 100) {
+      this.winTitle = '💎🏆 LEGENDARY WIN! 🏆💎';
+    } else if (multiplier >= 50) {
       this.winTitle = '🏆💎 MEGA JACKPOT! 💎🏆';
     } else if (multiplier >= 25) {
       this.winTitle = '🏆 JACKPOT! 🏆';
